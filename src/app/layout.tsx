@@ -19,10 +19,7 @@ export const metadata: Metadata = {
   description:
     "Free interactive cybersecurity learning platform. Learn ethical hacking with structured lessons, simulated labs, quizzes, and gamified progress tracking.",
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
+    icon: { url: "/favicon.svg", type: "image/svg+xml" },
   },
 };
 

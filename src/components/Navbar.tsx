@@ -45,7 +45,6 @@ export default function Navbar() {
     await supabase.auth.signOut();
     setSession(false);
     router.push("/");
-    router.refresh();
   };
 
   const getPillRect = useCallback(() => {

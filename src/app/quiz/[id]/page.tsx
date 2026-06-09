@@ -10,8 +10,7 @@ import AnimatedLightRays from "@/components/AnimatedLightRays";
 import QuizCard from "@/components/QuizCard";
 import ScrollReveal from "@/components/ScrollReveal";
 import { curriculum } from "@/data/curriculum";
-import { completeItem, type ProgressData } from "@/lib/supabase/progress";
-import { fetchProgress } from "@/lib/supabase/progress";
+import { completeItem, fetchProgress, type ProgressData } from "@/lib/supabase/progress";
 import type { Quiz } from "@/lib/types";
 
 export default function QuizPage() {
@@ -38,8 +37,8 @@ export default function QuizPage() {
   }
 
   const handleComplete = async (passed: boolean) => {
-    if (passed) {
-      const p = await completeItem("quiz", quizId, quiz!.xpReward);
+    if (passed && quiz) {
+      const p = await completeItem("quiz", quizId, quiz.xpReward);
       setProgress(p);
     }
   };

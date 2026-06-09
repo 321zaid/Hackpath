@@ -11,7 +11,6 @@ interface TerminalLabProps {
   hint: string;
   fakeCommands: string[];
   fakeOutputs: Record<string, string>;
-  expectedFlag: string;
   xpReward: number;
   onComplete: (flag: string) => boolean | Promise<boolean>;
 }

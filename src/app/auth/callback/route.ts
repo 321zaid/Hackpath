@@ -14,14 +14,16 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("profiles").upsert({
-          id: user.id,
-          username: user.user_metadata?.username ?? `user_${user.id.slice(0, 8)}`,
-        });
+        try {
+          await supabase.from("profiles").upsert({
+            id: user.id,
+            username: user.user_metadata?.username ?? `user_${user.id.slice(0, 8)}`,
+          });
 
-        await supabase.from("user_progress").upsert({
-          user_id: user.id,
-        });
+          await supabase.from("user_progress").upsert({
+            user_id: user.id,
+          });
+        } catch {}
       }
       return NextResponse.redirect(`${origin}${next}`);
     }

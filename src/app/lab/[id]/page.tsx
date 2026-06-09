@@ -10,8 +10,7 @@ import AnimatedLightRays from "@/components/AnimatedLightRays";
 import TerminalLab from "@/components/TerminalLab";
 import ScrollReveal from "@/components/ScrollReveal";
 import { curriculum } from "@/data/curriculum";
-import { completeItem, type ProgressData } from "@/lib/supabase/progress";
-import { fetchProgress } from "@/lib/supabase/progress";
+import { completeItem, fetchProgress, type ProgressData } from "@/lib/supabase/progress";
 import type { Lab } from "@/lib/types";
 
 export default function LabPage() {
@@ -111,7 +110,6 @@ export default function LabPage() {
                 hint={lab.hint}
                 fakeCommands={lab.fakeCommands}
                 fakeOutputs={lab.fakeOutputs}
-                expectedFlag={lab.expectedFlag}
                 xpReward={lab.xpReward}
                 onComplete={handleComplete}
               />

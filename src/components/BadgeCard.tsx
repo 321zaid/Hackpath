@@ -22,6 +22,7 @@ const iconMap: Record<string, React.ReactNode> = {
   Globe: <Globe className="w-6 h-6" />,
   Wifi: <Wifi className="w-6 h-6" />,
   Bird: <Bird className="w-6 h-6" />,
+  Penguin: <Bird className="w-6 h-6" />,
 };
 
 interface BadgeCardProps {

@@ -102,7 +102,7 @@ export default function RoadmapCard({
                     "h-full rounded-full",
                     status === "completed" && "bg-accent",
                     status === "active" && "bg-gradient-to-r from-accent/60 to-accent",
-                    status === "locked" && "bg-gray-700"
+                    status === "locked" && "bg-[var(--color-gray-700)]"
                   )}
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}

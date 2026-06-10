@@ -20,13 +20,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      const [p, profile] = await Promise.all([fetchProgress(), fetchProfile()]);
-      setProgress(p);
-      if (profile?.username) setUsername(profile.username);
-      setLoading(false);
+      try {
+        const [p, profile] = await Promise.all([fetchProgress(), fetchProfile()]);
+        if (cancelled) return;
+        setProgress(p);
+        if (profile?.username) setUsername(profile.username);
+      } catch {
+        // session or network error — keep default state
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading || !progress) {

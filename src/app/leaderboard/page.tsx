@@ -21,16 +21,24 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      const [leaderboard, profile] = await Promise.all([
-        fetchLeaderboard(),
-        fetchProfile(),
-      ]);
-      setUsers(leaderboard);
-      if (profile?.username) setCurrentUsername(profile.username);
-      setLoading(false);
+      try {
+        const [leaderboard, profile] = await Promise.all([
+          fetchLeaderboard(),
+          fetchProfile(),
+        ]);
+        if (cancelled) return;
+        setUsers(leaderboard);
+        if (profile?.username) setCurrentUsername(profile.username);
+      } catch {
+        // keep defaults
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) {

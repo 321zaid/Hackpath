@@ -22,33 +22,38 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username },
-      },
-    });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username },
+        },
+      });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else if (data.user?.identities?.length === 0) {
-      setError("An account with this email already exists.");
-      setLoading(false);
-    } else {
-      if (data.session && data.user) {
-        await supabase.from("profiles").upsert({
-          id: data.user.id,
-          username,
-        });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else if (data.user?.identities?.length === 0) {
+        setError("An account with this email already exists.");
+        setLoading(false);
+      } else {
+        if (data.session && data.user) {
+          await supabase.from("profiles").upsert({
+            id: data.user.id,
+            username,
+          });
 
-        await supabase.from("user_progress").upsert({
-          user_id: data.user.id,
-        });
+          await supabase.from("user_progress").upsert({
+            user_id: data.user.id,
+          });
+        }
+        router.push("/login?message=Check your email to confirm your account");
       }
-      router.push("/login?message=Check your email to confirm your account");
+    } catch {
+      setError("Network error. Please try again.");
+      setLoading(false);
     }
   };
 

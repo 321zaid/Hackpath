@@ -23,10 +23,13 @@ export default function WeekPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     fetchProgress().then((p) => {
-      setProgress(p);
-      setLoading(false);
+      if (!cancelled) setProgress(p);
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
     });
+    return () => { cancelled = true; };
   }, []);
 
   if (loading || !progress) {

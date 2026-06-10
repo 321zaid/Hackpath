@@ -34,50 +34,51 @@ function computeLevel(xp: number): number {
   return 1;
 }
 
+async function getUserId(): Promise<string | null> {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id ?? null;
+}
+
 export async function fetchProgress(): Promise<ProgressData> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ...defaultProgress };
+  const userId = await getUserId();
+  if (!userId) return { ...defaultProgress };
 
-  const { data: progress } = await supabase
-    .from("user_progress")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+  try {
+    const [progressResult, completedResult, badgesResult] = await Promise.all([
+      supabase.from("user_progress").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("completed_items").select("item_type, item_id").eq("user_id", userId),
+      supabase.from("user_badges").select("badge_id").eq("user_id", userId),
+    ]);
 
-  const { data: completed } = await supabase
-    .from("completed_items")
-    .select("item_type, item_id")
-    .eq("user_id", user.id);
+    const progress = progressResult.data;
+    const completed = completedResult.data;
+    const badges = badgesResult.data;
 
-  const { data: badges } = await supabase
-    .from("user_badges")
-    .select("badge_id")
-    .eq("user_id", user.id);
+    const completedLessons =
+      completed?.filter((c) => c.item_type === "lesson").map((c) => c.item_id) ?? [];
+    const completedLabs =
+      completed?.filter((c) => c.item_type === "lab").map((c) => c.item_id) ?? [];
+    const completedQuizzes =
+      completed?.filter((c) => c.item_type === "quiz").map((c) => c.item_id) ?? [];
+    const userBadges = badges?.map((b) => b.badge_id) ?? [];
 
-  const completedLessons =
-    completed?.filter((c) => c.item_type === "lesson").map((c) => c.item_id) ??
-    [];
-  const completedLabs =
-    completed?.filter((c) => c.item_type === "lab").map((c) => c.item_id) ?? [];
-  const completedQuizzes =
-    completed?.filter((c) => c.item_type === "quiz").map((c) => c.item_id) ?? [];
-  const userBadges = badges?.map((b) => b.badge_id) ?? [];
-
-  return {
-    current_week: progress?.current_week ?? 1,
-    total_xp: progress?.total_xp ?? 0,
-    level: progress?.level ?? computeLevel(progress?.total_xp ?? 0),
-    streak: progress?.streak ?? 0,
-    last_login_date:
-      progress?.last_login_date ?? new Date().toISOString().split("T")[0],
-    completed_lessons: completedLessons,
-    completed_labs: completedLabs,
-    completed_quizzes: completedQuizzes,
-    badges: userBadges,
-  };
+    return {
+      current_week: progress?.current_week ?? 1,
+      total_xp: progress?.total_xp ?? 0,
+      level: progress?.level ?? computeLevel(progress?.total_xp ?? 0),
+      streak: progress?.streak ?? 0,
+      last_login_date:
+        progress?.last_login_date ?? new Date().toISOString().split("T")[0],
+      completed_lessons: completedLessons,
+      completed_labs: completedLabs,
+      completed_quizzes: completedQuizzes,
+      badges: userBadges,
+    };
+  } catch {
+    return { ...defaultProgress };
+  }
 }
 
 export async function completeItem(
@@ -86,22 +87,20 @@ export async function completeItem(
   xpEarned: number,
 ): Promise<ProgressData> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const userId = await getUserId();
+  if (!userId) throw new Error("Not authenticated");
 
   const { data: existing } = await supabase
     .from("completed_items")
     .select("id")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("item_type", itemType)
     .eq("item_id", itemId)
     .maybeSingle();
 
   if (!existing) {
     await supabase.from("completed_items").insert({
-      user_id: user.id,
+      user_id: userId,
       item_type: itemType,
       item_id: itemId,
       xp_earned: xpEarned,
@@ -110,8 +109,8 @@ export async function completeItem(
     const { data: current } = await supabase
       .from("user_progress")
       .select("total_xp")
-      .eq("user_id", user.id)
-      .single();
+      .eq("user_id", userId)
+      .maybeSingle();
 
     const newTotal = (current?.total_xp ?? 0) + xpEarned;
     const newLevel = computeLevel(newTotal);
@@ -119,7 +118,7 @@ export async function completeItem(
     await supabase
       .from("user_progress")
       .update({ total_xp: newTotal, level: newLevel })
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
   }
 
   return fetchProgress();
@@ -127,25 +126,23 @@ export async function completeItem(
 
 export async function awardBadge(badgeId: string): Promise<ProgressData> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const userId = await getUserId();
+  if (!userId) throw new Error("Not authenticated");
 
   const { data: existing } = await supabase
     .from("user_badges")
     .select("id")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("badge_id", badgeId)
     .maybeSingle();
 
   if (!existing) {
     await supabase.from("user_badges").insert({
-      user_id: user.id,
+      user_id: userId,
       badge_id: badgeId,
     });
 
-    await supabase.rpc("increment_xp", { amount: 100, uid: user.id });
+    await supabase.rpc("increment_xp", { amount: 100, uid: userId });
   }
 
   return fetchProgress();
@@ -160,54 +157,55 @@ export interface LeaderboardEntry {
 export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
   const supabase = createClient();
 
-  const { data } = await supabase
-    .from("user_progress")
-    .select("total_xp, level, user_id")
-    .order("total_xp", { ascending: false })
-    .limit(50);
+  try {
+    const { data } = await supabase
+      .from("user_progress")
+      .select("total_xp, level, user_id")
+      .order("total_xp", { ascending: false })
+      .limit(50);
 
-  if (!data || data.length === 0) return [];
+    if (!data || data.length === 0) return [];
 
-  const userIds = data.map((d) => d.user_id);
+    const userIds = data.map((d) => d.user_id);
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, username")
-    .in("id", userIds);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, username")
+      .in("id", userIds);
 
-  const profileMap = new Map(profiles?.map((p) => [p.id, p.username]) ?? []);
+    const profileMap = new Map(profiles?.map((p) => [p.id, p.username]) ?? []);
 
-  return data.map((entry) => ({
-    username: profileMap.get(entry.user_id) ?? "unknown",
-    total_xp: entry.total_xp,
-    level: entry.level,
-  }));
+    return data.map((entry) => ({
+      username: profileMap.get(entry.user_id) ?? "unknown",
+      total_xp: entry.total_xp,
+      level: entry.level,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchProfile() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const userId = await getUserId();
+  if (!userId) return null;
 
-  const { data: progress } = await supabase
-    .from("user_progress")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+  try {
+    const [profileResult, progressResult] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      supabase.from("user_progress").select("*").eq("user_id", userId).maybeSingle(),
+    ]);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+    const profile = profileResult.data;
+    const progress = progressResult.data;
 
-  return {
-    id: user.id,
-    email: user.email,
-    username: profile?.username ?? "unknown",
-    display_name: profile?.display_name ?? null,
-    progress: progress ?? null,
-  };
+    return {
+      id: userId,
+      username: profile?.username ?? "unknown",
+      display_name: profile?.display_name ?? null,
+      progress: progress ?? null,
+    };
+  } catch {
+    return null;
+  }
 }

@@ -21,19 +21,27 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
-      const [p, profile, leaderboard] = await Promise.all([
-        fetchProgress(),
-        fetchProfile(),
-        fetchLeaderboard(),
-      ]);
-      setProgress(p);
-      if (profile?.username) setUsername(profile.username);
-      const userRank = leaderboard.findIndex((e) => e.username === profile?.username) + 1;
-      setRank(userRank > 0 ? userRank : null);
-      setLoading(false);
+      try {
+        const [p, profile, leaderboard] = await Promise.all([
+          fetchProgress(),
+          fetchProfile(),
+          fetchLeaderboard(),
+        ]);
+        if (cancelled) return;
+        setProgress(p);
+        if (profile?.username) setUsername(profile.username);
+        const userRank = leaderboard.findIndex((e) => e.username === profile?.username) + 1;
+        setRank(userRank > 0 ? userRank : null);
+      } catch {
+        // keep defaults
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading || !progress) {

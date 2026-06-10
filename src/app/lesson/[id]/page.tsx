@@ -38,6 +38,8 @@ export default function LessonPage() {
     let cancelled = false;
     fetchProgress().then((p) => {
       if (!cancelled) setProgress(p);
+    }).catch(() => {
+      // keep defaults
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
@@ -76,9 +78,13 @@ export default function LessonPage() {
   const completed = progress.completed_lessons.includes(lessonId);
 
   const handleComplete = async () => {
-    const p = await completeItem("lesson", lessonId, lesson.xpReward);
-    setProgress(p);
-    setJustCompleted(true);
+    try {
+      const p = await completeItem("lesson", lessonId, lesson.xpReward);
+      setProgress(p);
+      setJustCompleted(true);
+    } catch {
+      // silently fail — user can retry
+    }
   };
 
   const currentWeek = curriculum.find((w) => w.id === weekId);

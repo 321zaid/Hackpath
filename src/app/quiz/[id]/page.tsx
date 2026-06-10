@@ -23,6 +23,8 @@ export default function QuizPage() {
     let cancelled = false;
     fetchProgress().then((p) => {
       if (!cancelled) setProgress(p);
+    }).catch(() => {
+      // keep defaults
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
@@ -40,9 +42,13 @@ export default function QuizPage() {
   }
 
   const handleComplete = async (passed: boolean) => {
-    if (passed && quiz) {
-      const p = await completeItem("quiz", quizId, quiz.xpReward);
-      setProgress(p);
+    try {
+      if (passed && quiz) {
+        const p = await completeItem("quiz", quizId, quiz.xpReward);
+        setProgress(p);
+      }
+    } catch {
+      // silently fail — user can retry
     }
   };
 

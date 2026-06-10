@@ -23,6 +23,8 @@ export default function LabPage() {
     let cancelled = false;
     fetchProgress().then((p) => {
       if (!cancelled) setProgress(p);
+    }).catch(() => {
+      // keep defaults
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
@@ -70,13 +72,17 @@ export default function LabPage() {
   }
 
   const handleComplete = async (flag: string) => {
-    const isCorrect = flag.trim() === lab.expectedFlag;
-    if (isCorrect) {
-      const p = await completeItem("lab", labId, lab.xpReward);
-      setProgress(p);
-      return true;
+    try {
+      const isCorrect = flag.trim() === lab.expectedFlag;
+      if (isCorrect) {
+        const p = await completeItem("lab", labId, lab.xpReward);
+        setProgress(p);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
     }
-    return false;
   };
 
   return (

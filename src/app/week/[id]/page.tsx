@@ -26,6 +26,8 @@ export default function WeekPage() {
     let cancelled = false;
     fetchProgress().then((p) => {
       if (!cancelled) setProgress(p);
+    }).catch(() => {
+      // keep defaults
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });

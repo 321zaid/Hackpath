@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getProgressKey(): string {
-  return "hackpath_progress";
+  return "opencyber_progress";
 }
 
 export function getDefaultProgress() {

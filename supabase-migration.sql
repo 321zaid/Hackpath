@@ -1,5 +1,5 @@
 -- ============================================================
--- HackPath Supabase SQL Migration
+-- OpenCyber Supabase SQL Migration
 -- Run this in your Supabase SQL Editor.
 -- Creates tables, functions, trigger, and RLS policies.
 -- ============================================================

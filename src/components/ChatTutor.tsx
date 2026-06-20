@@ -44,8 +44,8 @@ function MarkdownContent({ text }: { text: string }) {
             );
           }
           return (
-            <div className="my-3 overflow-x-auto rounded-lg border border-border/20">
-              <pre className="bg-[var(--color-gray-800)] p-3.5 overflow-x-auto text-xs leading-relaxed font-mono">
+            <div className="my-4 overflow-x-auto rounded-lg border border-border/20">
+              <pre className="bg-[var(--color-gray-800)] p-3.5 overflow-x-auto text-sm leading-relaxed font-mono">
                 <code className={className} {...props}>
                   {children}
                 </code>
@@ -54,31 +54,31 @@ function MarkdownContent({ text }: { text: string }) {
           );
         },
         ul: ({ children }) => (
-          <ul className="list-disc list-outside space-y-1.5 my-2.5 text-sm pl-4">{children}</ul>
+          <ul className="list-disc list-outside space-y-2 my-3 text-sm pl-5">{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal list-outside space-y-1.5 my-2.5 text-sm pl-4">{children}</ol>
+          <ol className="list-decimal list-outside space-y-2 my-3 text-sm pl-5">{children}</ol>
         ),
-        li: ({ children }) => <li className="leading-relaxed marker:text-accent/60">{children}</li>,
-        p: ({ children }) => <p className="mb-2.5 last:mb-0 text-sm leading-relaxed">{children}</p>,
+        li: ({ children }) => <li className="leading-relaxed mb-1 marker:text-accent/60">{children}</li>,
+        p: ({ children }) => <p className="mb-3 last:mb-0 text-sm leading-relaxed">{children}</p>,
         h1: ({ children }) => (
-          <h1 className="text-base font-bold mb-2.5 mt-4 text-foreground tracking-tight font-sans border-b border-border/20 pb-1">
+          <h1 className="text-base font-bold mb-3 mt-5 text-foreground tracking-tight font-sans border-b border-border/20 pb-1.5">
             {children}
           </h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-sm font-bold mb-2 mt-3.5 text-accent tracking-tight font-sans">
+          <h2 className="text-sm font-bold mb-2.5 mt-4 text-accent tracking-tight font-sans">
             {children}
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-sm font-semibold mb-1.5 mt-3 text-foreground font-sans">
+          <h3 className="text-sm font-bold mb-2 mt-5 text-accent tracking-tight font-sans border-b border-border/10 pb-1">
             {children}
           </h3>
         ),
-        hr: () => <hr className="my-4 border-border/20" />,
+        hr: () => <hr className="my-5 border-border/15" />,
         blockquote: ({ children }) => (
-          <blockquote className="border-l-[3px] border-accent/30 pl-3.5 my-3 text-sm italic leading-relaxed text-[var(--color-gray-400)] bg-accent-dim/10 py-1.5 pr-2 rounded-r-lg">
+          <blockquote className="border-l-[3px] border-accent/30 pl-4 my-4 text-sm italic leading-relaxed text-[var(--color-gray-400)] bg-accent-dim/10 py-2.5 pr-3 rounded-r-lg">
             {children}
           </blockquote>
         ),
@@ -88,7 +88,7 @@ function MarkdownContent({ text }: { text: string }) {
           </a>
         ),
         table: ({ children }) => (
-          <div className="my-3 overflow-x-auto rounded-lg border border-border/20">
+          <div className="my-4 overflow-x-auto rounded-lg border border-border/20">
             <table className="min-w-full text-xs font-mono divide-y divide-border/30">
               {children}
             </table>
@@ -102,10 +102,10 @@ function MarkdownContent({ text }: { text: string }) {
         ),
         tr: ({ children }) => <tr className="hover:bg-accent-dim/5 transition-colors">{children}</tr>,
         th: ({ children }) => (
-          <th className="px-3 py-2 text-left font-bold text-accent text-xs">{children}</th>
+          <th className="px-3.5 py-2.5 text-left font-bold text-accent text-xs">{children}</th>
         ),
         td: ({ children }) => (
-          <td className="px-3 py-2 text-[var(--color-gray-300)] text-xs">{children}</td>
+          <td className="px-3.5 py-2.5 text-[var(--color-gray-300)] text-xs">{children}</td>
         ),
         img: ({ src, alt }) => (
           <img src={src} alt={alt} className="my-3 rounded-lg max-w-full border border-border/20" loading="lazy" />
@@ -218,7 +218,7 @@ export default function ChatTutor() {
               <span className="text-sm font-mono text-accent font-semibold">OpenCyber AI Tutor</span>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {messages.map((msg, i) => (
                 <motion.div
                   key={i}
@@ -226,7 +226,7 @@ export default function ChatTutor() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i > 1 ? 0 : 0 }}
                   className={cn(
-                    "max-w-[90%] px-3.5 py-2.5 rounded-lg leading-relaxed",
+                    "max-w-[92%] px-4 py-3 rounded-lg leading-relaxed",
                     msg.role === "user"
                       ? "ml-auto bg-accent-dim/30 text-accent border border-accent/20"
                       : "bg-[var(--color-gray-800)]/50 text-[var(--color-gray-200)] border border-border/50",

@@ -8,6 +8,7 @@ import { ArrowLeft, Beaker } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import AnimatedLightRays from "@/components/AnimatedLightRays";
 import TerminalLab from "@/components/TerminalLab";
+import LabAssistant from "@/components/LabAssistant";
 import ScrollReveal from "@/components/ScrollReveal";
 import { curriculum } from "@/data/curriculum";
 import { completeItem, fetchProgress, type ProgressData } from "@/lib/supabase/progress";
@@ -112,6 +113,9 @@ export default function LabPage() {
 
             <h1 className="text-2xl font-bold text-foreground font-mono mb-6">{lab.title}</h1>
 
+            <div className="mb-3">
+              <LabAssistant labId={lab.id} labTitle={lab.title} />
+            </div>
             <ScrollReveal>
               <TerminalLab
                 challenge={lab.challenge}

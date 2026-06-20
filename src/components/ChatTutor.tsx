@@ -4,6 +4,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -16,12 +19,110 @@ interface Source {
   week: number;
 }
 
+function MarkdownContent({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeHighlight]}
+      components={{
+        strong: ({ children }) => (
+          <span className="font-bold text-foreground tracking-wide">{children}</span>
+        ),
+        em: ({ children }) => (
+          <span className="italic text-[var(--color-gray-300)]">{children}</span>
+        ),
+        del: ({ children }) => (
+          <span className="line-through text-[var(--color-gray-500)]">{children}</span>
+        ),
+        code: ({ className, children, ...props }) => {
+          const isInline = !className;
+          if (isInline) {
+            return (
+              <code className="px-1.5 py-0.5 bg-[var(--color-gray-800)] text-accent text-xs rounded font-mono font-bold tracking-tight">
+                {children}
+              </code>
+            );
+          }
+          return (
+            <div className="my-3 overflow-x-auto rounded-lg border border-border/20">
+              <pre className="bg-[var(--color-gray-800)] p-3.5 overflow-x-auto text-xs leading-relaxed font-mono">
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              </pre>
+            </div>
+          );
+        },
+        ul: ({ children }) => (
+          <ul className="list-disc list-outside space-y-1.5 my-2.5 text-sm pl-4">{children}</ul>
+        ),
+        ol: ({ children }) => (
+          <ol className="list-decimal list-outside space-y-1.5 my-2.5 text-sm pl-4">{children}</ol>
+        ),
+        li: ({ children }) => <li className="leading-relaxed marker:text-accent/60">{children}</li>,
+        p: ({ children }) => <p className="mb-2.5 last:mb-0 text-sm leading-relaxed">{children}</p>,
+        h1: ({ children }) => (
+          <h1 className="text-base font-bold mb-2.5 mt-4 text-foreground tracking-tight font-sans border-b border-border/20 pb-1">
+            {children}
+          </h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="text-sm font-bold mb-2 mt-3.5 text-accent tracking-tight font-sans">
+            {children}
+          </h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="text-sm font-semibold mb-1.5 mt-3 text-foreground font-sans">
+            {children}
+          </h3>
+        ),
+        hr: () => <hr className="my-4 border-border/20" />,
+        blockquote: ({ children }) => (
+          <blockquote className="border-l-[3px] border-accent/30 pl-3.5 my-3 text-sm italic leading-relaxed text-[var(--color-gray-400)] bg-accent-dim/10 py-1.5 pr-2 rounded-r-lg">
+            {children}
+          </blockquote>
+        ),
+        a: ({ href, children }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent hover:brightness-110 transition-all">
+            {children}
+          </a>
+        ),
+        table: ({ children }) => (
+          <div className="my-3 overflow-x-auto rounded-lg border border-border/20">
+            <table className="min-w-full text-xs font-mono divide-y divide-border/30">
+              {children}
+            </table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead className="bg-accent-dim/20">{children}</thead>
+        ),
+        tbody: ({ children }) => (
+          <tbody className="divide-y divide-border/20">{children}</tbody>
+        ),
+        tr: ({ children }) => <tr className="hover:bg-accent-dim/5 transition-colors">{children}</tr>,
+        th: ({ children }) => (
+          <th className="px-3 py-2 text-left font-bold text-accent text-xs">{children}</th>
+        ),
+        td: ({ children }) => (
+          <td className="px-3 py-2 text-[var(--color-gray-300)] text-xs">{children}</td>
+        ),
+        img: ({ src, alt }) => (
+          <img src={src} alt={alt} className="my-3 rounded-lg max-w-full border border-border/20" loading="lazy" />
+        ),
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
+
 export default function ChatTutor() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi! I'm the OpenCyber AI tutor. Ask me anything about cybersecurity, ethical hacking, or the curriculum.",
+      text: "Hi! I'm the **OpenCyber AI Tutor**. Ask me anything about cybersecurity, ethical hacking, or the curriculum.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -110,9 +211,9 @@ export default function ChatTutor() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-6 z-50 w-80 sm:w-96 h-[500px] border border-border bg-surface rounded-xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-20 right-6 z-50 w-80 sm:w-96 h-[560px] border border-border bg-surface rounded-xl shadow-2xl flex flex-col overflow-hidden"
           >
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-accent-dim/20">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-accent-dim/20 shrink-0">
               <Sparkles className="w-4 h-4 text-accent" />
               <span className="text-sm font-mono text-accent font-semibold">OpenCyber AI Tutor</span>
             </div>
@@ -125,13 +226,19 @@ export default function ChatTutor() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i > 1 ? 0 : 0 }}
                   className={cn(
-                    "max-w-[85%] px-3 py-2 rounded-lg text-sm font-mono leading-relaxed",
+                    "max-w-[90%] px-3.5 py-2.5 rounded-lg leading-relaxed",
                     msg.role === "user"
                       ? "ml-auto bg-accent-dim/30 text-accent border border-accent/20"
                       : "bg-[var(--color-gray-800)]/50 text-[var(--color-gray-200)] border border-border/50",
                   )}
                 >
-                  {msg.text}
+                  {msg.role === "assistant" ? (
+                    <div className="prose-custom text-sm [&_*]:text-[var(--color-gray-200)]">
+                      <MarkdownContent text={msg.text} />
+                    </div>
+                  ) : (
+                    <p className="text-sm font-mono">{msg.text}</p>
+                  )}
                 </motion.div>
               ))}
               {loading && (
@@ -148,7 +255,7 @@ export default function ChatTutor() {
             </div>
 
             {sources.length > 0 && (
-              <div className="border-t border-border/50 px-4 py-2">
+              <div className="border-t border-border/50 px-4 py-2 shrink-0">
                 <button
                   onClick={() => setShowSources(!showSources)}
                   className="flex items-center gap-1 text-xs text-[var(--color-gray-500)] hover:text-accent font-mono transition-colors"
@@ -169,7 +276,7 @@ export default function ChatTutor() {
                           key={i}
                           className="text-xs text-[var(--color-gray-500)] font-mono flex items-center gap-1.5"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-accent/50" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent/50 shrink-0" />
                           {s.title}
                           <span className="text-[var(--color-gray-600)]">(Week {s.week})</span>
                         </div>
@@ -180,7 +287,10 @@ export default function ChatTutor() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3 border-t border-border bg-[var(--color-gray-900)]/50">
+            <form
+              onSubmit={handleSubmit}
+              className="flex items-center gap-2 p-3 border-t border-border bg-[var(--color-gray-900)]/50 shrink-0"
+            >
               <input
                 ref={inputRef}
                 type="text"
@@ -194,7 +304,7 @@ export default function ChatTutor() {
                 whileTap={{ scale: 0.95 }}
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="p-2 bg-accent-dim border border-accent/30 text-accent rounded-lg hover:bg-accent/20 transition-colors disabled:opacity-40"
+                className="p-2 bg-accent-dim border border-accent/30 text-accent rounded-lg hover:bg-accent/20 transition-colors disabled:opacity-40 shrink-0"
               >
                 <Send className="w-4 h-4" />
               </motion.button>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateEmbedding } from "@/lib/ai/embeddings";
-import { generateAnswer } from "@/lib/ai/gemini";
+import { generateAnswer, detectAnswerLength } from "@/lib/ai/gemini";
 import { getAllChunks, findRelevantChunks, formatChunksForContext } from "@/lib/ai/chunk";
 
 export async function POST(req: NextRequest) {
@@ -65,22 +65,63 @@ export async function POST(req: NextRequest) {
         ? formatChunksForContext(relevantChunks as any)
         : "No specific curriculum context available.";
 
-    const systemInstruction = `You are OpenCyber AI, a cybersecurity tutor on the OpenCyber platform. You help users learn ethical hacking and cybersecurity.
+    const length = detectAnswerLength(question);
+
+    const lengthHint =
+      length === "short"
+        ? "The user wants a short answer. Keep it very brief."
+        : length === "detailed"
+          ? "The user wants a detailed explanation. Go deeper."
+          : "Give a medium-length, well-structured answer.";
+
+    const systemInstruction = `You are Opencyber AI Tutor, a professional beginner-friendly cybersecurity learning assistant. Your job is to help students understand the course content clearly, safely, and practically.
 
 You have the following context from the OpenCyber curriculum:
 
 ${contextStr}
 
-Rules:
-- Answer based on the provided curriculum context. If the answer isn't in the context, say so and offer general cybersecurity knowledge.
-- Be concise but thorough. Use bullet points and code examples when helpful.
-- If the user asks about something dangerous/illegal (beyond ethical hacking scope), redirect them to legal testing practices.
-- NEVER provide instructions for illegal activities or attacks on systems without authorization.
-- ALWAYS remind users to only test systems they own or have permission to test.
-- If the question relates to a specific lab, give hints rather than the direct flag.
-- Format code blocks with triple backticks and the appropriate language.`;
+${lengthHint}
 
-    const answer = await generateAnswer(question, systemInstruction);
+## Structure your answer using this format when suitable:
+
+**Short Answer** — 2-4 lines answering directly.
+
+**Explanation** — Explain in beginner-friendly language. Avoid unnecessary jargon. If you must use a technical term, explain it the first time.
+
+**Example** — A small realistic example related to cybersecurity, Linux, networking, web security, or the current lesson.
+
+**Steps** — Numbered steps if the student is doing a lab or task.
+
+**Common Mistake** — One mistake beginners usually make.
+
+**Quick Check** — One short question or mini task to check understanding.
+
+## Tone rules
+
+- Professional but friendly. Clean and calm, not robotic.
+- Use headings, spacing, and bullet points. No huge walls of text.
+- Explain acronyms the first time you use them (e.g., "SQL — Structured Query Language").
+- Keep answers focused on the student's question.
+- If the student asks something advanced, explain it in beginner terms first, then add the advanced part.
+- If the retrieved curriculum context is relevant, prioritize it. If the context doesn't cover the question, say so honestly and give a general explanation.
+- Never pretend something is in the curriculum if it was not retrieved.
+
+## Formatting rules
+
+- Use Markdown formatting. Use bold for headings (e.g., **Short Answer**).
+- Use short paragraphs.
+- Use code blocks (\`\`\`) only for commands or code.
+- Maximum 0-1 emoji per answer. Preferably none.
+- Avoid filler phrases like "Certainly!" or "Great question!" every time.
+- Do not output raw JSON.
+
+## Safety rules
+
+- For hacking-related questions, only explain in ethical, legal, lab-based terms.
+- Never give instructions for illegal activities or attacks on unauthorized systems.
+- If the question relates to a specific lab, give hints rather than the direct flag or answer.`;
+
+    const answer = await generateAnswer(question, systemInstruction, length);
 
     const sources = relevantChunks
       .filter((c) => c.source !== "platform-overview" && c.source !== "gamification-system")
@@ -90,7 +131,7 @@ Rules:
         week: c.weekId,
       }));
 
-    return NextResponse.json({ answer, sources });
+    return NextResponse.json({ answer, sources, length });
   } catch (error) {
     console.error("AI ask error:", error);
     return NextResponse.json(

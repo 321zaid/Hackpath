@@ -155,6 +155,38 @@ body {
   50% { opacity: 0; }
 }
 
+.prose-custom code {
+  font-family: var(--font-mono);
+}
+
+.hljs {
+  color: var(--color-foreground);
+}
+
+.hljs-keyword { color: #ff79c6; }
+.hljs-string { color: #f1fa8c; }
+.hljs-comment { color: #6272a4; font-style: italic; }
+.hljs-function { color: #50fa7b; }
+.hljs-number { color: #bd93f9; }
+.hljs-built_in { color: #8be9fd; }
+.hljs-attr { color: #50fa7b; }
+.hljs-variable { color: #ffb86c; }
+.hljs-title { color: #50fa7b; }
+.hljs-params { color: #f8f8f2; }
+.hljs-literal { color: #bd93f9; }
+.hljs-type { color: #8be9fd; }
+.hljs-selector-class { color: #50fa7b; }
+.hljs-selector-id { color: #50fa7b; }
+.hljs-selector-tag { color: #ff79c6; }
+.hljs-section { color: #50fa7b; }
+.hljs-link { color: #ff79c6; }
+.hljs-regexp { color: #f1fa8c; }
+.hljs-symbol { color: #bd93f9; }
+.hljs-bullet { color: #ff79c6; }
+.hljs-meta { color: #6272a4; }
+.hljs-deletion { color: #ff5555; }
+.hljs-addition { color: #50fa7b; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

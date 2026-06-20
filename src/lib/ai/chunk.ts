@@ -30,9 +30,10 @@ export function getChunksForWeek(weekId: number): KnowledgeChunk[] {
   if (!week) return [];
 
   const chunks: KnowledgeChunk[] = [];
+  const weekLabel = `Week ${week.id}: ${week.title}`;
 
   for (const lesson of week.lessons) {
-    const contentParts = [lesson.content];
+    const contentParts = [`[${weekLabel} - ${lesson.title}]`, lesson.content];
 
     if (lesson.keyConcepts.length > 0) {
       contentParts.push("Key concepts: " + lesson.keyConcepts.join(", "));
@@ -55,7 +56,7 @@ export function getChunksForWeek(weekId: number): KnowledgeChunk[] {
     if (lesson.commandBlocks && lesson.commandBlocks.length > 0) {
       for (const block of lesson.commandBlocks) {
         chunks.push({
-          content: `Command example for "${block.title}":\n${block.code}\n\nPurpose: ${block.explanation}`,
+          content: `[${weekLabel} - ${lesson.title}]\nCommand example for "${block.title}":\n${block.code}\n\nPurpose: ${block.explanation}`,
           source: `week-${week.id}/lesson-${lesson.id}/command-${block.title}`,
           chunkType: "lesson",
           weekId: week.id,
@@ -67,6 +68,7 @@ export function getChunksForWeek(weekId: number): KnowledgeChunk[] {
 
   for (const lab of week.labs) {
     const labContent = [
+      `[${weekLabel} - Lab: ${lab.title}]`,
       `Lab Challenge: ${lab.challenge}`,
       `Instructions: ${lab.instructions.join("; ")}`,
       `Hint: ${lab.hint}`,
@@ -83,6 +85,7 @@ export function getChunksForWeek(weekId: number): KnowledgeChunk[] {
   }
 
   const quizContent = [
+    `[${weekLabel} - Quiz]`,
     `Quiz: ${week.quiz.title} (pass score: ${week.quiz.passScore}%)`,
     ...week.quiz.questions.map(
       (q) =>
@@ -116,4 +119,50 @@ export function formatChunksForContext(chunks: KnowledgeChunk[]): string {
         `[Source: ${c.source} (${c.chunkType})]\n${c.content}`,
     )
     .join("\n\n---\n\n");
+}
+
+export function findRelevantChunks(
+  question: string,
+  allChunks: KnowledgeChunk[],
+): KnowledgeChunk[] {
+  const q = question.toLowerCase();
+  const keywords = q
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .map((w) => w.replace(/[^a-z0-9]/g, ""))
+    .filter(Boolean);
+
+  const weekMatch = q.match(/week\s*(\d+)/i);
+  const targetWeek = weekMatch ? parseInt(weekMatch[1]) : null;
+  const isWeekQuery = q.includes("week") || !!targetWeek;
+
+  const scored = allChunks.map((c) => {
+    const searchTarget = (c.content + " " + c.source + " " + JSON.stringify(c.metadata)).toLowerCase();
+    let score = 0;
+
+    for (const kw of keywords) {
+      if (searchTarget.includes(kw)) {
+        score++;
+        if (c.source.includes(kw)) score += 2;
+      }
+    }
+
+    if (targetWeek && c.weekId === targetWeek) score += 5;
+    if (isWeekQuery && c.weekId > 0) score += 1;
+
+    if (c.chunkType === "lesson") score += 0.5;
+    if (c.chunkType === "reference") score += 0.3;
+
+    return { chunk: c, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const topScore = scored[0]?.score ?? 0;
+
+  if (topScore === 0 && targetWeek) {
+    const weekChunks = allChunks.filter((c) => c.weekId === targetWeek);
+    return weekChunks.slice(0, 5);
+  }
+
+  return scored.filter((s) => s.score > 0 || isWeekQuery).slice(0, 5).map((s) => s.chunk);
 }

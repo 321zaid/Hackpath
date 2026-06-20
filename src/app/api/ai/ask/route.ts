@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import { generateAnswer } from "@/lib/ai/gemini";
-import { getAllChunks, formatChunksForContext } from "@/lib/ai/chunk";
+import { getAllChunks, findRelevantChunks, formatChunksForContext } from "@/lib/ai/chunk";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,26 +30,19 @@ export async function POST(req: NextRequest) {
 
         const { data: chunks } = await supabase.rpc("match_knowledge_chunks", {
           query_embedding: embedding,
-          match_threshold: 0.7,
+          match_threshold: 0.5,
           match_count: 5,
         });
 
         if (chunks && chunks.length > 0) {
           relevantChunks = chunks;
+        } else {
+          const allChunks = getAllChunks();
+          relevantChunks = findRelevantChunks(question, allChunks);
         }
       } catch {
         const allChunks = getAllChunks();
-        const keywords = question.toLowerCase().split(" ").filter((w) => w.length > 3);
-        const scored = allChunks.map((c) => {
-          const lower = c.content.toLowerCase();
-          let score = 0;
-          for (const kw of keywords) {
-            if (lower.includes(kw)) score++;
-          }
-          return { ...c, score };
-        });
-        scored.sort((a, b) => b.score - a.score);
-        relevantChunks = scored.slice(0, 5);
+        relevantChunks = findRelevantChunks(question, allChunks);
       }
     }
 

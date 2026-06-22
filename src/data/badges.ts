@@ -32,7 +32,7 @@ export const badges: Badge[] = [
   {
     id: "week_graduate",
     name: "12-Week Graduate",
-    description: "Completed all 12 weeks of OpenCyber",
+    description: "Completed all 12 weeks of CipherNest",
     icon: "GraduationCap",
     requirement: "Complete all weeks",
   },

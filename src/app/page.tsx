@@ -93,7 +93,7 @@ export default function HomePage() {
 
                 <div className="mb-6">
                   <BlindsTextReveal
-                    text="OpenCyber"
+                    text="CipherNest"
                     className="text-5xl sm:text-7xl md:text-8xl font-bold"
                     stagger={0.06}
                     delay={0.4}
@@ -158,7 +158,7 @@ export default function HomePage() {
                 <motion.div variants={sectionVariants}>
                   <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 font-mono">
                     <span className="text-accent">Why</span>{" "}
-                    <span className="text-foreground">OpenCyber?</span>
+                    <span className="text-foreground">CipherNest?</span>
                   </h2>
                   <p className="text-center text-[var(--color-gray-500)] font-mono text-sm mb-12 max-w-xl mx-auto">
                     Everything you need to go from complete beginner to ethical hacker
@@ -200,7 +200,7 @@ export default function HomePage() {
                 <div className="relative z-10">
                   <Target className="w-10 h-10 text-accent mx-auto mb-4" />
                   <h2 className="text-xl font-bold text-center font-mono text-foreground mb-3">
-                    About <span className="text-accent">OpenCyber</span>
+                    About <span className="text-accent">CipherNest</span>
                   </h2>
                   <p className="text-sm text-[var(--color-gray-400)] font-mono leading-relaxed max-w-xl mx-auto text-center">
                     We are focused on making cyber security education accessible to everyone
@@ -224,7 +224,7 @@ export default function HomePage() {
                   </p>
                   <p className="text-sm text-[var(--color-gray-400)] font-mono leading-relaxed max-w-lg mx-auto">
                     Only practice on systems you own or have explicit permission to test.
-                    OpenCyber uses simulated, sandboxed environments for educational purposes only.
+                    CipherNest uses simulated, sandboxed environments for educational purposes only.
                   </p>
                 </div>
               </div>

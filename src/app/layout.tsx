@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenCyber - Master Ethical Hacking in 12 Weeks",
+  title: "CipherNest - Master Ethical Hacking in 12 Weeks",
   description:
     "Free interactive cybersecurity learning platform. Learn ethical hacking with structured lessons, simulated labs, quizzes, and gamified progress tracking.",
   icons: {
@@ -41,7 +41,7 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('opencyber-theme');
+                  var theme = localStorage.getItem('ciphernest-theme');
                   if (theme === 'light') {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.classList.add('light');

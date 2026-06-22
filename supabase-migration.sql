@@ -1,5 +1,5 @@
 -- ============================================================
--- OpenCyber Supabase SQL Migration
+-- CipherNest Supabase SQL Migration
 -- Run this in your Supabase SQL Editor.
 -- Creates tables, functions, trigger, and RLS policies.
 -- ============================================================

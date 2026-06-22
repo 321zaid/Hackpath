@@ -58,7 +58,7 @@ export default function Navbar() {
               <Terminal className="w-6 h-6 text-[var(--color-inverse)]" />
             </motion.div>
             <span className="text-xl font-bold text-[var(--color-inverse)] font-mono tracking-wider">
-              OpenCyber
+              CipherNest
             </span>
           </Link>
 

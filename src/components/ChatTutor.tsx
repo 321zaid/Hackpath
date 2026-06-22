@@ -122,7 +122,7 @@ export default function ChatTutor() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi! I'm the **OpenCyber AI Tutor**. Ask me anything about cybersecurity, ethical hacking, or the curriculum.",
+      text: "Hi! I'm the **CipherNest AI Tutor**. Ask me anything about cybersecurity, ethical hacking, or the curriculum.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -215,7 +215,7 @@ export default function ChatTutor() {
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-accent-dim/20 shrink-0">
               <Sparkles className="w-4 h-4 text-accent" />
-              <span className="text-sm font-mono text-accent font-semibold">OpenCyber AI Tutor</span>
+              <span className="text-sm font-mono text-accent font-semibold">CipherNest AI Tutor</span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 space-y-4">

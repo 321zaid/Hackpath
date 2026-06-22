@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function ThemeToggle() {
   const [dark, setDark] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("opencyber-theme") !== "light";
+      return localStorage.getItem("ciphernest-theme") !== "light";
     }
     return true;
   });
@@ -15,7 +15,7 @@ export default function ThemeToggle() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    const stored = localStorage.getItem("opencyber-theme");
+    const stored = localStorage.getItem("ciphernest-theme");
     if (stored === "light") {
       document.documentElement.classList.remove("dark");
       document.documentElement.classList.add("light");
@@ -30,11 +30,11 @@ export default function ThemeToggle() {
     if (next) {
       document.documentElement.classList.remove("light");
       document.documentElement.classList.add("dark");
-      localStorage.setItem("opencyber-theme", "dark");
+      localStorage.setItem("ciphernest-theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
       document.documentElement.classList.add("light");
-      localStorage.setItem("opencyber-theme", "light");
+      localStorage.setItem("ciphernest-theme", "light");
     }
   };
 

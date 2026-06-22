@@ -50,7 +50,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <Terminal className="w-6 h-6 text-accent" />
-            <span className="text-xl font-bold text-foreground font-mono">OpenCyber</span>
+            <span className="text-xl font-bold text-foreground font-mono">CipherNest</span>
           </Link>
           <h1 className="text-2xl font-bold font-mono text-foreground">Welcome back</h1>
           <p className="text-sm text-[var(--color-gray-500)] font-mono mt-1">Sign in to continue your journey</p>

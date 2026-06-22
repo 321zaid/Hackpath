@@ -28,7 +28,7 @@ export default function TerminalLab({
   const [output, setOutput] = useState<string[]>([
     "",
     "╔══════════════════════════════════════════╗",
-    "║  OpenCyber Terminal v1.0                  ║",
+    "║  CipherNest Terminal v1.0                  ║",
     "║  Type 'help' for available commands       ║",
     "╚══════════════════════════════════════════╝",
     "",
@@ -56,7 +56,7 @@ export default function TerminalLab({
     const trimmed = cmd.trim().toLowerCase();
 
     if (trimmed === "help") {
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       addOutput(`  Available commands:`);
       addOutput(`  ${fakeCommands.join(", ")}`);
       addOutput("  flag       - Submit your captured flag");
@@ -64,16 +64,16 @@ export default function TerminalLab({
       addOutput("  clear      - Clear terminal");
     } else if (trimmed === "hint") {
       setShowHint(true);
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       addOutput(`[+] Hint: ${hint}`);
     } else if (trimmed === "flag") {
       setShowFlagInput(true);
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       addOutput(`[*] Enter your flag below:`);
     } else if (trimmed === "clear") {
       setOutput([""]);
     } else if (fakeOutputs[cmd]) {
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       const result = fakeOutputs[cmd];
       const lines = result.split("\n");
       for (let i = 0; i < lines.length; i++) {
@@ -81,10 +81,10 @@ export default function TerminalLab({
         await new Promise((r) => setTimeout(r, 100));
       }
     } else if (fakeCommands.some((fc) => trimmed.startsWith(fc))) {
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       addOutput("[+] Command executed successfully.");
     } else {
-      addOutput(`opencyber@kali:~$ ${cmd}`);
+      addOutput(`ciphernest@kali:~$ ${cmd}`);
       addOutput(`bash: ${trimmed}: command not found`);
     }
     setInput("");
@@ -167,7 +167,7 @@ export default function TerminalLab({
       >
         <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-2 border-b border-border bg-[#0a0a0a]/90 backdrop-blur-sm">
           <Terminal className="w-4 h-4 text-accent" />
-          <span className="text-accent/80 text-xs">opencyber@kali:~$</span>
+          <span className="text-accent/80 text-xs">ciphernest@kali:~$</span>
           <div className="flex-1" />
           <span className="w-2 h-2 rounded-full bg-accent/40 animate-pulse" />
         </div>

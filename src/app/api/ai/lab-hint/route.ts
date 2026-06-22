@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     const contextStr = formatChunksForContext(labChunks.length > 0 ? labChunks : weekChunks.slice(0, 5) as any);
 
-    const systemInstruction = `You are OpenCyber AI Lab Assistant. You help users complete cybersecurity labs without giving away the flag directly.
+    const systemInstruction = `You are CipherNest AI Lab Assistant. You help users complete cybersecurity labs without giving away the flag directly.
 
 Lab context:
 ${contextStr}

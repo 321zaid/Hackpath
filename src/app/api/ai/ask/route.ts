@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
           ? "The user wants a detailed explanation. Go deeper."
           : "Give a medium-length, well-structured answer.";
 
-    const systemInstruction = `You are Opencyber AI Tutor, a professional beginner-friendly cybersecurity learning assistant. Your job is to help students understand the course content clearly, safely, and practically.
+    const systemInstruction = `You are CipherNest AI Tutor, a professional beginner-friendly cybersecurity learning assistant. Your job is to help students understand the course content clearly, safely, and practically.
 
-You have the following context from the OpenCyber curriculum:
+You have the following context from the CipherNest curriculum:
 
 ${contextStr}
 

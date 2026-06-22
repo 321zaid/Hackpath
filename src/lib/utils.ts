@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getProgressKey(): string {
-  return "opencyber_progress";
+  return "ciphernest_progress";
 }
 
 export function getDefaultProgress() {

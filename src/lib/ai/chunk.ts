@@ -10,7 +10,7 @@ export interface KnowledgeChunk {
 
 const WEEK_REFERENCE_CHUNKS: KnowledgeChunk[] = [
   {
-    content: `OpenCyber is a free interactive cybersecurity learning platform. It features a structured 12-week curriculum covering ethical hacking, penetration testing, and security fundamentals. Users learn through lessons, simulated labs, quizzes, and earn XP points, badges, and level up their profile.`,
+    content: `CipherNest is a free interactive cybersecurity learning platform. It features a structured 12-week curriculum covering ethical hacking, penetration testing, and security fundamentals. Users learn through lessons, simulated labs, quizzes, and earn XP points, badges, and level up their profile.`,
     source: "platform-overview",
     chunkType: "reference",
     weekId: 0,

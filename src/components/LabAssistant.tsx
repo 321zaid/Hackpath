@@ -74,8 +74,8 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
           >
             <div className="p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-mono text-purple-400 font-semibold">
+                <Bot className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-mono text-purple-500 font-semibold">
                   Lab Assistant: {labTitle}
                 </span>
               </div>
@@ -86,7 +86,7 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => getHint(false)}
                   disabled={loading}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-lg hover:bg-purple-500/20 transition-colors font-mono disabled:opacity-40"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-500/10 border border-purple-500/30 text-purple-500 rounded-lg hover:bg-purple-500/20 transition-colors font-mono disabled:opacity-40"
                 >
                   <Lightbulb className="w-3 h-3" />
                   Give me a hint
@@ -96,7 +96,7 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => getHint(true)}
                   disabled={loading}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-lg hover:bg-yellow-500/20 transition-colors font-mono disabled:opacity-40"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 rounded-lg hover:bg-yellow-500/20 transition-colors font-mono disabled:opacity-40"
                 >
                   <Bot className="w-3 h-3" />
                   I&apos;m stuck
@@ -120,7 +120,7 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => getHint(userStuck)}
                   disabled={loading || !question.trim()}
-                  className="p-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-lg hover:bg-purple-500/20 transition-colors disabled:opacity-40"
+                  className="p-2 bg-purple-500/10 border border-purple-500/30 text-purple-500 rounded-lg hover:bg-purple-500/20 transition-colors disabled:opacity-40"
                 >
                   <Send className="w-4 h-4" />
                 </motion.button>
@@ -128,7 +128,7 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
 
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-[var(--color-gray-400)] font-mono">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
                   Thinking...
                 </div>
               )}
@@ -139,7 +139,7 @@ export default function LabAssistant({ labId, labTitle }: LabAssistantProps) {
                   animate={{ opacity: 1, y: 0 }}
                   className="p-3 border border-purple-500/20 bg-purple-500/5 rounded-lg"
                 >
-                  <p className="text-sm text-purple-300 font-mono whitespace-pre-wrap leading-relaxed">
+                  <p className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
                     {answer}
                   </p>
                 </motion.div>

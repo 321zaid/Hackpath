@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateEmbedding } from "@/lib/ai/embeddings";
-import { generateAnswer, detectAnswerLength } from "@/lib/ai/gemini";
+import { generateAnswerStream, detectAnswerLength } from "@/lib/ai/gemini";
 import { getAllChunks, findRelevantChunks, formatChunksForContext } from "@/lib/ai/chunk";
 
 export async function POST(req: NextRequest) {
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
           ? "The user wants a detailed explanation. Go deeper."
           : "Give a medium-length, well-structured answer.";
 
-    const systemInstruction = `You are CipherNest AI Tutor, a professional beginner-friendly cybersecurity learning assistant. Your job is to help students understand the course content clearly, safely, and practically.
+    const systemInstruction = `You are Pooki AI, a professional, calm, and beginner-friendly cybersecurity tutor from the CipherNest platform. Your job is to help students understand cybersecurity clearly, safely, and practically.
 
 You have the following context from the CipherNest curriculum:
 
@@ -87,32 +87,30 @@ ${lengthHint}
 Always leave a completely blank line before and after each section heading. Never cram sections together.
 
 ### Short Answer
-2-4 lines answering directly.
+2-4 lines answering directly in simple language.
 
-### Explanation
-Explain in beginner-friendly language. Avoid unnecessary jargon. If you must use a technical term, explain it the first time.
+### Simple Explanation
+Explain like the student is new to tech. Avoid unnecessary jargon. If you must use a technical term, explain it immediately after (e.g., "kernel — the core part of an OS that controls everything").
 
 ### Example
 A small realistic example related to cybersecurity, Linux, networking, web security, or the current lesson.
 
-### Steps
-Numbered steps if the student is doing a lab or task.
-
-### Common Mistake
-One mistake beginners usually make.
+### What To Do Next
+If the student is working on something, suggest 1-2 clear next steps.
 
 ### Quick Check
 One short question or mini task to check understanding.
 
 ## Tone rules
 
-- Professional but friendly. Clean and calm, not robotic.
+- Professional but warm. Clean and calm, not robotic.
 - Use headings, spacing, and bullet points. No huge walls of text.
 - Explain acronyms the first time you use them (e.g., "SQL — Structured Query Language").
 - Keep answers focused on the student's question.
 - If the student asks something advanced, explain it in beginner terms first, then add the advanced part.
 - If the retrieved curriculum context is relevant, prioritize it. If the context doesn't cover the question, say so honestly and give a general explanation.
 - Never pretend something is in the curriculum if it was not retrieved.
+- If a question is off-topic or unethical for a cybersecurity platform, politely redirect to ethical learning.
 
 ## Formatting rules
 
@@ -130,8 +128,6 @@ One short question or mini task to check understanding.
 - Never give instructions for illegal activities or attacks on unauthorized systems.
 - If the question relates to a specific lab, give hints rather than the direct flag or answer.`;
 
-    const answer = await generateAnswer(question, systemInstruction, length);
-
     const sources = relevantChunks
       .filter((c) => c.source !== "platform-overview" && c.source !== "gamification-system")
       .map((c) => ({
@@ -140,7 +136,46 @@ One short question or mini task to check understanding.
         week: c.weekId,
       }));
 
-    return NextResponse.json({ answer, sources, length });
+    const geminiStream = await generateAnswerStream(question, systemInstruction, length);
+
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = geminiStream.getReader();
+        const decoder = new TextDecoder();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          if (sources.length > 0) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "done", sources })}\n\n`,
+              ),
+            );
+          }
+        } catch (error) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ type: "error", message: error instanceof Error ? error.message : "Stream error" })}\n\n`,
+            ),
+          );
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
     console.error("AI ask error:", error);
     return NextResponse.json(

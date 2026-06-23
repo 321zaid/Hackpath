@@ -117,12 +117,28 @@ function MarkdownContent({ text }: { text: string }) {
   );
 }
 
+async function getDisplayName(): Promise<string | null> {
+  try {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    if (data?.user?.user_metadata?.display_name) return data.user.user_metadata.display_name;
+    if (data?.user?.user_metadata?.username) return data.user.user_metadata.username;
+    const { data: profile } = await supabase.from("profiles").select("username").eq("id", data?.user?.id).single();
+    if (profile?.username) return profile.username;
+    if (data?.user?.email) return data.user.email.split("@")[0];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ChatTutor() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi! I'm the **CipherNest AI Tutor**. Ask me anything about cybersecurity, ethical hacking, or the curriculum.",
+      text: "Hi! I'm **Pooki AI**, your friendly cybersecurity tutor. Ask me anything about ethical hacking, the curriculum, or cybersecurity concepts.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -138,9 +154,106 @@ export default function ChatTutor() {
 
   useEffect(() => {
     if (open) {
+      getDisplayName().then((name) => {
+        if (name) {
+          setMessages([
+            {
+              role: "assistant",
+              text: `Hi **${name}**! I'm **Pooki AI**, your friendly cybersecurity tutor. Ask me anything about ethical hacking, the curriculum, or cybersecurity concepts.`,
+            },
+          ]);
+        }
+      });
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [open]);
+
+  const sendMessage = useCallback(async (text: string) => {
+    setMessages((prev) => [...prev, { role: "user", text }]);
+    setLoading(true);
+    setSources([]);
+    setShowSources(false);
+
+    setMessages((prev) => [...prev, { role: "assistant", text: "" }]);
+
+    try {
+      const res = await fetch("/api/ai/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text, stream: true }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Request failed" }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      if (!res.body) throw new Error("No response body");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const raw = line.slice(6).trim();
+            if (!raw) continue;
+            try {
+              const data = JSON.parse(raw);
+              if (data.type === "delta") {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const last = updated[updated.length - 1];
+                  if (last?.role === "assistant") {
+                    updated[updated.length - 1] = { role: "assistant", text: last.text + data.text };
+                  }
+                  return updated;
+                });
+              } else if (data.type === "done") {
+                if (data.sources?.length > 0) {
+                  setSources(data.sources);
+                }
+              } else if (data.type === "error") {
+                throw new Error(data.message);
+              }
+            } catch { /* skip */ }
+          }
+        }
+      }
+    } catch (error) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last?.role === "assistant") {
+          updated[updated.length - 1] = {
+            role: "assistant",
+            text: error instanceof Error ? error.message : "Sorry, I couldn't process that request.",
+          };
+        }
+        return updated;
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.context) {
+        setOpen(true);
+        setTimeout(() => sendMessage(detail.context), 500);
+      }
+    };
+    window.addEventListener("opencode-ai-chat", handler);
+    return () => window.removeEventListener("opencode-ai-chat", handler);
+  }, [sendMessage]);
 
   useEffect(() => {
     scrollToBottom();
@@ -149,42 +262,9 @@ export default function ChatTutor() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
-
     const question = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", text: question }]);
-    setLoading(true);
-    setSources([]);
-    setShowSources(false);
-
-    try {
-      const res = await fetch("/api/ai/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to get response");
-      }
-
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", text: data.answer }]);
-      if (data.sources && data.sources.length > 0) {
-        setSources(data.sources);
-      }
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: error instanceof Error ? error.message : "Sorry, I couldn't process that request.",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+    await sendMessage(question);
   };
 
   return (
@@ -196,7 +276,7 @@ export default function ChatTutor() {
         className={cn(
           "fixed bottom-6 right-6 z-50 p-3.5 rounded-full shadow-lg transition-colors",
           open
-            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+            ? "bg-accent-dim text-accent hover:bg-accent/30"
             : "bg-accent-dim text-accent hover:bg-accent/30",
         )}
         aria-label={open ? "Close chat" : "Open AI tutor"}
@@ -215,7 +295,7 @@ export default function ChatTutor() {
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-accent-dim/20 shrink-0">
               <Sparkles className="w-4 h-4 text-accent" />
-              <span className="text-sm font-mono text-accent font-semibold">CipherNest AI Tutor</span>
+              <span className="text-sm font-mono text-accent font-semibold">Pooki AI</span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -247,8 +327,14 @@ export default function ChatTutor() {
                   animate={{ opacity: 1 }}
                   className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-gray-400)] font-mono"
                 >
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
-                  Thinking...
+                  {messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.text ? (
+                    <span className="w-2 h-4 bg-accent animate-pulse" />
+                  ) : (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
+                      Thinking...
+                    </>
+                  )}
                 </motion.div>
               )}
               <div ref={messagesEndRef} />

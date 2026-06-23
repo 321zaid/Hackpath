@@ -162,10 +162,10 @@ export default function TerminalLab({
 
       <div
         ref={terminalRef}
-        className="relative border border-border bg-[#0a0a0a] rounded-xl font-mono text-sm h-80 overflow-y-auto overflow-x-hidden"
+        className="relative border border-border bg-[var(--color-gray-900)] rounded-xl font-mono text-sm h-80 overflow-y-auto overflow-x-hidden"
         onClick={() => inputRef.current?.focus()}
       >
-        <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-2 border-b border-border bg-[#0a0a0a]/90 backdrop-blur-sm">
+        <div className="sticky top-0 z-10 flex items-center gap-2 px-4 py-2 border-b border-border bg-[var(--color-gray-900)]/90 backdrop-blur-sm">
           <Terminal className="w-4 h-4 text-accent" />
           <span className="text-accent/80 text-xs">ciphernest@kali:~$</span>
           <div className="flex-1" />
@@ -221,7 +221,7 @@ export default function TerminalLab({
                 value={flagInput}
                 onChange={(e) => setFlagInput(e.target.value)}
                 placeholder="HP{...}"
-                className="flex-1 bg-[#0a0a0a] border border-accent/30 rounded-lg px-3 py-2 text-accent font-mono text-sm outline-none focus:border-accent transition-colors"
+                className="flex-1 bg-[var(--color-gray-900)] border border-accent/30 rounded-lg px-3 py-2 text-accent font-mono text-sm outline-none focus:border-accent transition-colors"
               />
               <motion.button
                 whileHover={{ scale: 1.03 }}

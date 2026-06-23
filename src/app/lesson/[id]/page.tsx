@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle, ArrowRight, Terminal, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle, ArrowRight, Terminal, Sparkles, MessageSquare } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Navbar from "@/components/Navbar";
 import AnimatedLightRays from "@/components/AnimatedLightRays";
 import CyberButton from "@/components/CyberButton";
 import ScrollReveal from "@/components/ScrollReveal";
+import QuizCard from "@/components/QuizCard";
 import { curriculum } from "@/data/curriculum";
 import { fetchProgress, completeItem, type ProgressData } from "@/lib/supabase/progress";
 import type { Lesson } from "@/lib/types";
@@ -19,6 +22,7 @@ export default function LessonPage() {
   const lessonId = params.id as string;
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [justCompleted, setJustCompleted] = useState(false);
+  const [quizPassed, setQuizPassed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   let lesson: Lesson | null = null;
@@ -44,6 +48,11 @@ export default function LessonPage() {
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
+  }, []);
+
+  const handleOpenChat = useCallback((context: string) => {
+    const event = new CustomEvent("opencode-ai-chat", { detail: { context } });
+    window.dispatchEvent(event);
   }, []);
 
   if (loading || !progress) {
@@ -87,6 +96,19 @@ export default function LessonPage() {
     }
   };
 
+  const handleQuizComplete = async (passed: boolean) => {
+    if (passed && lesson.quiz) {
+      try {
+        const p = await completeItem("lesson", lessonId, lesson.xpReward + lesson.quiz.xpReward);
+        setProgress(p);
+        setJustCompleted(true);
+        setQuizPassed(true);
+      } catch {
+        // silently fail
+      }
+    }
+  };
+
   const currentWeek = curriculum.find((w) => w.id === weekId);
   const lessonIndex = currentWeek?.lessons.findIndex((l) => l.id === lessonId) ?? -1;
   const nextLesson = currentWeek?.lessons[lessonIndex + 1];
@@ -118,12 +140,10 @@ export default function LessonPage() {
             <h1 className="text-2xl font-bold text-foreground font-mono mb-6">{lesson.title}</h1>
 
             <ScrollReveal>
-              <div className="border border-border bg-surface rounded-xl p-6 mb-8">
-                {lesson.content.split("\n\n").map((paragraph: string, i: number) => (
-                  <p key={i} className="text-[var(--color-gray-300)] font-mono text-sm leading-relaxed mb-4 last:mb-0">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="border border-border bg-surface rounded-xl p-6 mb-8 prose-custom text-sm leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.content}
+                </ReactMarkdown>
               </div>
             </ScrollReveal>
 
@@ -150,7 +170,7 @@ export default function LessonPage() {
                       <div className="px-4 py-2 bg-accent-dim border-b border-border">
                         <span className="text-xs text-accent font-mono">{block.title}</span>
                       </div>
-                      <pre className="p-4 text-sm text-green-400 font-mono overflow-x-auto bg-[#0a0a0a]">
+                      <pre className="p-4 text-sm text-green-400 font-mono overflow-x-auto bg-[var(--color-gray-900)]">
                         <code>{block.code}</code>
                       </pre>
                       <div className="px-4 py-2 border-t border-border bg-[var(--color-overlay-dim)]">
@@ -162,21 +182,55 @@ export default function LessonPage() {
               </div>
             )}
 
+            {lesson.quiz && (
+              <ScrollReveal delay={0.2}>
+                <div className="mb-8">
+                  <h2 className="text-lg font-bold text-accent font-mono mb-3">Lesson Quiz</h2>
+                  <QuizCard
+                    title={lesson.quiz ? `${lesson.title} Quiz` : "Quiz"}
+                    questions={lesson.quiz.questions}
+                    passScore={lesson.quiz.passScore}
+                    xpReward={lesson.quiz.xpReward}
+                    onComplete={handleQuizComplete}
+                    onAskAITutor={handleOpenChat}
+                    lessonId={lessonId}
+                    lessonTitle={lesson.title}
+                    weekId={weekId}
+                    nextLessonId={nextLesson?.id}
+                    nextLessonTitle={nextLesson?.title}
+                  />
+                </div>
+              </ScrollReveal>
+            )}
+
             <div className="flex items-center gap-3 flex-wrap">
-              {!completed ? (
+              {!lesson.quiz && !completed && (
                 <CyberButton variant="primary" onClick={handleComplete} icon={<CheckCircle className="w-4 h-4" />}>
                   Mark as Complete
                 </CyberButton>
-              ) : (
+              )}
+              {!lesson.quiz && completed && (
+                <div className="flex items-center gap-2 px-4 py-2 border border-accent/20 bg-accent-dim rounded-xl">
+                  <CheckCircle className="w-4 h-4 text-accent" />
+                  <span className="text-sm text-accent font-mono">Completed</span>
+                </div>
+              )}
+              {lesson.quiz && quizPassed && (
                 <div className="flex items-center gap-2 px-4 py-2 border border-accent/20 bg-accent-dim rounded-xl">
                   <CheckCircle className="w-4 h-4 text-accent" />
                   <span className="text-sm text-accent font-mono">Completed</span>
                 </div>
               )}
 
-              {nextLesson && (
+              {nextLesson && (completed || quizPassed) && (
                 <CyberButton variant="secondary" onClick={() => router.push(`/lesson/${nextLesson.id}`)} icon={<ArrowRight className="w-4 h-4" />}>
                   Next: {nextLesson.title}
+                </CyberButton>
+              )}
+
+              {!lesson.quiz && (
+                <CyberButton variant="secondary" onClick={() => handleOpenChat(`I'm learning "${lesson.title}" in the CipherNest curriculum. Can you help me understand this better?`)} icon={<MessageSquare className="w-4 h-4" />}>
+                  Ask AI Tutor
                 </CyberButton>
               )}
             </div>
@@ -189,7 +243,7 @@ export default function LessonPage() {
               >
                 <p className="text-sm text-accent font-mono flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  +{lesson.xpReward} XP earned!
+                  +{lesson.xpReward}{lesson.quiz ? ` + ${lesson.quiz.xpReward}` : ""} XP earned!
                 </p>
               </motion.div>
             )}

@@ -18,6 +18,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { Lesson } from "@/lib/types";
+import { ToolRequirements, FreeSandboxes } from "./ToolRequirements";
 
 interface InteractiveLessonProps {
   lesson: Lesson;
@@ -289,7 +290,8 @@ export default function InteractiveLesson({
 
   const sections = useMemo(() => parseLessonContent(lesson.content), [lesson.content]);
 
-  const totalSteps = sections.length + (lesson.commandBlocks?.length ?? 0) + (lesson.keyConcepts.length > 0 ? 1 : 0);
+  const hasTools = !!(lesson.toolRequirements?.length || lesson.riskWarning);
+  const totalSteps = sections.length + (lesson.commandBlocks?.length ?? 0) + (lesson.keyConcepts.length > 0 ? 1 : 0) + (hasTools ? 1 : 0);
   const currentStep = currentSection;
 
   const handleContinue = () => {
@@ -310,6 +312,15 @@ export default function InteractiveLesson({
 
   const renderSection = (index: number) => {
     let offset = 0;
+
+    if (hasTools && offset === index) {
+      offset++;
+      return (
+        <div key="tools" className="mb-4">
+          <ToolRequirements tools={lesson.toolRequirements} riskWarning={lesson.riskWarning} />
+        </div>
+      );
+    }
 
     for (const section of sections) {
       if (offset === index) {
@@ -488,6 +499,7 @@ export default function InteractiveLesson({
           ))}
         </div>
         <div className="flex items-center gap-3">
+          {completed && <FreeSandboxes />}
           {!completed && (
             <button
               onClick={onComplete}
@@ -581,6 +593,8 @@ export default function InteractiveLesson({
             <span className="text-sm text-accent font-mono">Completed</span>
           </div>
         )}
+
+        {currentStep === totalSteps - 1 && completed && <div className="mt-4"><FreeSandboxes /></div>}
 
         <button
           onClick={() => onAskAITutor(`I'm learning "${lesson.title}" in the CipherNest curriculum. Can you help me understand this better?`)}

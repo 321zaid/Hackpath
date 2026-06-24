@@ -6,6 +6,8 @@ export interface Lesson {
   commandBlocks?: { title: string; code: string; explanation: string }[];
   xpReward: number;
   day?: number;
+  toolRequirements?: { name: string; url?: string }[];
+  riskWarning?: string;
   quiz?: {
     questions: QuizQuestion[];
     passScore: number;
@@ -24,6 +26,8 @@ export interface Lab {
   fakeOutputs: Record<string, string>;
   xpReward: number;
   day?: number;
+  toolRequirements?: { name: string; url?: string }[];
+  riskWarning?: string;
 }
 
 export interface WeekDay {

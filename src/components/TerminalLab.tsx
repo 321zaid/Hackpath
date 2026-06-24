@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Send, Lightbulb, Flag, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolRequirements, FreeSandboxes } from "./ToolRequirements";
 
 interface TerminalLabProps {
   challenge: string;
@@ -12,6 +13,8 @@ interface TerminalLabProps {
   fakeCommands: string[];
   fakeOutputs: Record<string, string>;
   xpReward: number;
+  toolRequirements?: { name: string; url?: string }[];
+  riskWarning?: string;
   onComplete: (flag: string) => boolean | Promise<boolean>;
 }
 
@@ -22,6 +25,8 @@ export default function TerminalLab({
   fakeCommands,
   fakeOutputs,
   xpReward,
+  toolRequirements,
+  riskWarning,
   onComplete,
 }: TerminalLabProps) {
   const [input, setInput] = useState("");
@@ -111,6 +116,7 @@ export default function TerminalLab({
 
   return (
     <div className="space-y-4">
+      <ToolRequirements tools={toolRequirements} riskWarning={riskWarning} />
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -275,11 +281,13 @@ export default function TerminalLab({
                 🎉
               </motion.div>
               <h3 className="text-xl font-bold text-accent font-mono mb-1">Lab Complete!</h3>
-              <p className="text-accent/80 font-mono text-sm">+{xpReward} XP earned</p>
+                <p className="text-accent/80 font-mono text-sm">+{xpReward} XP earned</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {completed && <FreeSandboxes />}
     </div>
   );
 }

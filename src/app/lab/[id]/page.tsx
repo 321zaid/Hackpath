@@ -124,6 +124,8 @@ export default function LabPage() {
                 fakeCommands={lab.fakeCommands}
                 fakeOutputs={lab.fakeOutputs}
                 xpReward={lab.xpReward}
+                toolRequirements={lab.toolRequirements}
+                riskWarning={lab.riskWarning}
                 onComplete={handleComplete}
               />
             </ScrollReveal>

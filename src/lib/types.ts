@@ -5,6 +5,12 @@ export interface Lesson {
   keyConcepts: string[];
   commandBlocks?: { title: string; code: string; explanation: string }[];
   xpReward: number;
+  day?: number;
+  quiz?: {
+    questions: QuizQuestion[];
+    passScore: number;
+    xpReward: number;
+  };
 }
 
 export interface Lab {
@@ -17,6 +23,12 @@ export interface Lab {
   fakeCommands: string[];
   fakeOutputs: Record<string, string>;
   xpReward: number;
+  day?: number;
+}
+
+export interface WeekDay {
+  day: number;
+  title: string;
 }
 
 export interface QuizQuestion {
@@ -43,6 +55,7 @@ export interface Week {
   topics: string[];
   lessons: Lesson[];
   labs: Lab[];
+  days?: WeekDay[];
   quiz: Quiz;
   outcomes: string[];
   xpReward: number;

@@ -12,7 +12,10 @@ import {
   BookOpen,
   Target,
   AlertTriangle,
+  ChevronLeft,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { Lesson } from "@/lib/types";
 
@@ -319,10 +322,32 @@ export default function InteractiveLesson({
               </h2>
             )}
             {section.type === "content" && section.content && (
-              <div className="text-sm text-[var(--color-gray-300)] font-mono leading-relaxed space-y-3 prose-custom">
-                {section.content.split("\n\n").filter(Boolean).map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
+              <div className="text-sm text-[var(--color-gray-300)] font-mono leading-relaxed prose-custom">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    strong: ({ children }) => <strong className="text-foreground font-bold">{children}</strong>,
+                    code: ({ className, children, ...props }) => {
+                      const isInline = !className;
+                      if (isInline) {
+                        return <code className="px-1.5 py-0.5 bg-[var(--color-gray-800)] text-accent text-xs rounded font-mono">{children}</code>;
+                      }
+                      return (
+                        <div className="my-4 overflow-x-auto rounded-lg border border-border/20">
+                          <pre className="bg-[var(--color-gray-800)] p-3.5 overflow-x-auto text-sm leading-relaxed font-mono text-green-400">
+                            <code className={className} {...props}>{children}</code>
+                          </pre>
+                        </div>
+                      );
+                    },
+                    ul: ({ children }) => <ul className="list-disc list-outside space-y-1.5 my-3 pl-5">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-outside space-y-1.5 my-3 pl-5">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed mb-1 marker:text-accent/60">{children}</li>,
+                    p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                  }}
+                >
+                  {section.content}
+                </ReactMarkdown>
               </div>
             )}
           </div>
@@ -332,7 +357,7 @@ export default function InteractiveLesson({
     }
 
     if (lesson.commandBlocks) {
-      for (let i = 0; i < lesson.commandBlocks.length; i++) {
+    for (let i = 0; i < lesson.commandBlocks.length; i++) {
         if (offset === index) {
           const block = lesson.commandBlocks[i];
           return (
@@ -423,10 +448,32 @@ export default function InteractiveLesson({
                 <h2 className="text-lg font-bold text-foreground font-mono mb-3 mt-6 first:mt-0">{section.title}</h2>
               )}
               {section.type === "content" && section.content && (
-                <div className="text-sm text-[var(--color-gray-300)] font-mono leading-relaxed space-y-3">
-                  {section.content.split("\n\n").filter(Boolean).map((para, i) => (
-                    <p key={i}>{para}</p>
-                  ))}
+                <div className="text-sm text-[var(--color-gray-300)] font-mono leading-relaxed">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      strong: ({ children }) => <strong className="text-foreground font-bold">{children}</strong>,
+                      code: ({ className, children, ...props }) => {
+                        const isInline = !className;
+                        if (isInline) {
+                          return <code className="px-1.5 py-0.5 bg-[var(--color-gray-800)] text-accent text-xs rounded font-mono">{children}</code>;
+                        }
+                        return (
+                          <div className="my-4 overflow-x-auto rounded-lg border border-border/20">
+                            <pre className="bg-[var(--color-gray-800)] p-3.5 overflow-x-auto text-sm leading-relaxed font-mono text-green-400">
+                              <code className={className} {...props}>{children}</code>
+                            </pre>
+                          </div>
+                        );
+                      },
+                      ul: ({ children }) => <ul className="list-disc list-outside space-y-1.5 my-3 pl-5">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-outside space-y-1.5 my-3 pl-5">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed mb-1 marker:text-accent/60">{children}</li>,
+                      p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                    }}
+                  >
+                    {section.content}
+                  </ReactMarkdown>
                 </div>
               )}
               {section.type === "code" && section.code && (
@@ -498,6 +545,16 @@ export default function InteractiveLesson({
       </AnimatePresence>
 
       <div className="flex items-center gap-3 mt-6 flex-wrap">
+        {currentStep > 0 && (
+          <button
+            onClick={() => setCurrentSection((s) => Math.max(0, s - 1))}
+            className="inline-flex items-center gap-2 px-4 py-2.5 border border-border text-[var(--color-gray-400)] rounded-xl hover:text-accent hover:border-accent/30 transition-colors font-mono text-sm"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </button>
+        )}
+
         {currentStep < totalSteps - 1 && (
           <button
             onClick={handleContinue}

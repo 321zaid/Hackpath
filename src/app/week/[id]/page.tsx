@@ -147,61 +147,120 @@ export default function WeekPage() {
                 </section>
               </ScrollReveal>
 
-              <section>
-                <h2 className="text-lg font-bold text-accent font-mono mb-3 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  Lessons
-                </h2>
-                <div className="space-y-2">
-                  {week.lessons.map((lesson, i) => (
-                    <ScrollReveal key={lesson.id} delay={0.35 + i * 0.05}>
-                      <LessonCard
-                        id={lesson.id}
-                        title={lesson.title}
-                        xpReward={lesson.xpReward}
-                        completed={progress.completed_lessons.includes(lesson.id)}
-                        onClick={() => router.push(`/lesson/${lesson.id}`)}
-                      />
-                    </ScrollReveal>
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-lg font-bold text-accent font-mono mb-3 flex items-center gap-2">
-                  <Beaker className="w-4 h-4" />
-                  Labs
-                </h2>
-                <div className="space-y-2">
-                  {week.labs.map((lab, i) => (
-                    <ScrollReveal key={lab.id} delay={0.4 + i * 0.05}>
-                      <motion.button
-                        whileHover={{ x: 4 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => router.push(`/lab/${lab.id}`)}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all font-mono group",
-                          progress.completed_labs.includes(lab.id)
-                            ? "border-accent/20 bg-accent-dim opacity-60"
-                            : "border-border bg-surface hover:border-accent/30 hover:bg-accent/5"
-                        )}
-                      >
-                        {progress.completed_labs.includes(lab.id) ? (
-                          <CheckCircle className="w-5 h-5 text-accent shrink-0" />
-                        ) : (
-                          <Beaker className="w-5 h-5 text-[var(--color-gray-600)] shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className={cn("text-sm truncate", progress.completed_labs.includes(lab.id) ? "text-[var(--color-gray-500)]" : "text-foreground")}>
-                            {lab.title}
-                          </p>
+              {(week.days ?? []).length > 0 ? (
+                week.days!.map((day, di) => {
+                  const dayLessons = week.lessons.filter((l) => l.day === day.day);
+                  const dayLabs = week.labs.filter((l) => l.day === day.day);
+                  if (dayLessons.length === 0 && dayLabs.length === 0) return null;
+                  return (
+                    <section key={di}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="px-2 py-0.5 border border-accent/20 text-accent text-[10px] font-mono rounded">
+                          Day {day.day}
                         </div>
-                        <span className="text-xs text-accent/60 shrink-0">+{lab.xpReward} XP</span>
-                      </motion.button>
-                    </ScrollReveal>
-                  ))}
-                </div>
-              </section>
+                        <h3 className="text-sm font-bold text-foreground font-mono">{day.title}</h3>
+                      </div>
+                      <div className="space-y-2 mb-6">
+                        {dayLessons.map((lesson, i) => (
+                          <ScrollReveal key={lesson.id} delay={0.01 * i}>
+                            <LessonCard
+                              id={lesson.id}
+                              title={lesson.title}
+                              xpReward={lesson.xpReward}
+                              completed={progress.completed_lessons.includes(lesson.id)}
+                              onClick={() => router.push(`/lesson/${lesson.id}`)}
+                            />
+                          </ScrollReveal>
+                        ))}
+                        {dayLabs.map((lab, i) => (
+                          <motion.button
+                            key={lab.id}
+                            whileHover={{ x: 4 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => router.push(`/lab/${lab.id}`)}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all font-mono group",
+                              progress.completed_labs.includes(lab.id)
+                                ? "border-accent/20 bg-accent-dim opacity-60"
+                                : "border-border bg-surface hover:border-accent/30 hover:bg-accent/5"
+                            )}
+                          >
+                            {progress.completed_labs.includes(lab.id) ? (
+                              <CheckCircle className="w-5 h-5 text-accent shrink-0" />
+                            ) : (
+                              <Beaker className="w-5 h-5 text-[var(--color-gray-600)] shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={cn("text-sm truncate", progress.completed_labs.includes(lab.id) ? "text-[var(--color-gray-500)]" : "text-foreground")}>
+                                {lab.title}
+                              </p>
+                            </div>
+                            <span className="text-xs text-accent/60 shrink-0">+{lab.xpReward} XP</span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })
+              ) : (
+                <>
+                  <section>
+                    <h2 className="text-lg font-bold text-accent font-mono mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      Lessons
+                    </h2>
+                    <div className="space-y-2">
+                      {week.lessons.map((lesson, i) => (
+                        <ScrollReveal key={lesson.id} delay={0.35 + i * 0.05}>
+                          <LessonCard
+                            id={lesson.id}
+                            title={lesson.title}
+                            xpReward={lesson.xpReward}
+                            completed={progress.completed_lessons.includes(lesson.id)}
+                            onClick={() => router.push(`/lesson/${lesson.id}`)}
+                          />
+                        </ScrollReveal>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-bold text-accent font-mono mb-3 flex items-center gap-2">
+                      <Beaker className="w-4 h-4" />
+                      Labs
+                    </h2>
+                    <div className="space-y-2">
+                      {week.labs.map((lab, i) => (
+                        <ScrollReveal key={lab.id} delay={0.4 + i * 0.05}>
+                          <motion.button
+                            whileHover={{ x: 4 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => router.push(`/lab/${lab.id}`)}
+                            className={cn(
+                              "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all font-mono group",
+                              progress.completed_labs.includes(lab.id)
+                                ? "border-accent/20 bg-accent-dim opacity-60"
+                                : "border-border bg-surface hover:border-accent/30 hover:bg-accent/5"
+                            )}
+                          >
+                            {progress.completed_labs.includes(lab.id) ? (
+                              <CheckCircle className="w-5 h-5 text-accent shrink-0" />
+                            ) : (
+                              <Beaker className="w-5 h-5 text-[var(--color-gray-600)] shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={cn("text-sm truncate", progress.completed_labs.includes(lab.id) ? "text-[var(--color-gray-500)]" : "text-foreground")}>
+                                {lab.title}
+                              </p>
+                            </div>
+                            <span className="text-xs text-accent/60 shrink-0">+{lab.xpReward} XP</span>
+                          </motion.button>
+                        </ScrollReveal>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
 
               <section>
                 <h2 className="text-lg font-bold text-accent font-mono mb-3 flex items-center gap-2">

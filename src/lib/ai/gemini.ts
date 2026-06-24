@@ -52,6 +52,12 @@ function buildRequestBody(
   };
 }
 
+function buildUrl(model: string, suffix: string): string {
+  const base = `${API_BASE}/${model}:${suffix}`;
+  const separator = suffix.includes("?") ? "&" : "?";
+  return `${base}${separator}key=${GEMINI_API_KEY}`;
+}
+
 async function fetchWithFallback(
   body: object,
   endpointSuffix: string,
@@ -62,25 +68,28 @@ async function fetchWithFallback(
   for (const model of FALLBACK_MODELS) {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const res = await fetch(
-          `${API_BASE}/${model}:${endpointSuffix}?key=${GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          },
-        );
+        const res = await fetch(buildUrl(model, endpointSuffix), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
 
         if (res.ok) return res;
+
+        const errText = await res.text();
+        if (res.status === 400 && model !== FALLBACK_MODELS[FALLBACK_MODELS.length - 1]) {
+          lastError = new Error(`Gemini API error: ${res.status} ${errText}`);
+          break;
+        }
 
         if (res.status === 429 || res.status === 503) {
           const wait = Math.min(1000 * Math.pow(2, attempt), 4000);
           await new Promise((r) => setTimeout(r, wait));
-          lastError = new Error(`Gemini API error: ${res.status} ${await res.text()}`);
+          lastError = new Error(`Gemini API error: ${res.status} ${errText}`);
           continue;
         }
 
-        lastError = new Error(`Gemini API error: ${res.status} ${await res.text()}`);
+        lastError = new Error(`Gemini API error: ${res.status} ${errText}`);
         break;
       } catch (e) {
         lastError = e instanceof Error ? e : new Error(String(e));

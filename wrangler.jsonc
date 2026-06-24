@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "ciphernest",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "ciphernest"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ofkvkcnfncrmtqhxkpci.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ma3ZrY25mbmNybXRxaHhrcGNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTgzNjYsImV4cCI6MjA5NjQ3NDM2Nn0.yVrcZslocp6HazQU-w8uQ7huPwKdNle1Zh51dELAXrM",
+    "ADMIN_EMAIL": "zaid123was@gmail.com",
+    "USE_RAG": "true",
+    "SEED_SECRET": "ciphernest-seed-2026"
+  }
+}

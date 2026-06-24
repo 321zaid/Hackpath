@@ -4,13 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle, ArrowRight, Terminal, Sparkles, MessageSquare } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { ArrowLeft, CheckCircle, ArrowRight, Sparkles, MessageSquare } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import AnimatedLightRays from "@/components/AnimatedLightRays";
 import CyberButton from "@/components/CyberButton";
-import ScrollReveal from "@/components/ScrollReveal";
+import InteractiveLesson from "@/components/InteractiveLesson";
 import QuizCard from "@/components/QuizCard";
 import { curriculum } from "@/data/curriculum";
 import { fetchProgress, completeItem, type ProgressData } from "@/lib/supabase/progress";
@@ -139,82 +137,35 @@ export default function LessonPage() {
 
             <h1 className="text-2xl font-bold text-foreground font-mono mb-6">{lesson.title}</h1>
 
-            <ScrollReveal>
-              <div className="border border-border bg-surface rounded-xl p-6 mb-8 prose-custom text-sm leading-relaxed">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {lesson.content}
-                </ReactMarkdown>
-              </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={0.1}>
-              <div className="mb-8">
-                <h2 className="text-lg font-bold text-accent font-mono mb-3">Key Concepts</h2>
-                <ul className="space-y-2">
-                  {lesson.keyConcepts.map((concept: string) => (
-                    <li key={concept} className="flex items-start gap-2 text-sm text-[var(--color-gray-400)] font-mono">
-                      <Terminal className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" />
-                      {concept}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </ScrollReveal>
-
-            {lesson.commandBlocks && lesson.commandBlocks.length > 0 && (
-              <div className="space-y-4 mb-8">
-                <h2 className="text-lg font-bold text-accent font-mono">Command Blocks</h2>
-                {lesson.commandBlocks.map((block, i: number) => (
-                  <ScrollReveal key={i} delay={0.15 + i * 0.1}>
-                    <div className="border border-border bg-surface rounded-xl overflow-hidden">
-                      <div className="px-4 py-2 bg-accent-dim border-b border-border">
-                        <span className="text-xs text-accent font-mono">{block.title}</span>
-                      </div>
-                      <pre className="p-4 text-sm text-green-400 font-mono overflow-x-auto bg-[var(--color-gray-900)]">
-                        <code>{block.code}</code>
-                      </pre>
-                      <div className="px-4 py-2 border-t border-border bg-[var(--color-overlay-dim)]">
-                        <p className="text-xs text-[var(--color-gray-500)] font-mono">{block.explanation}</p>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
-              </div>
-            )}
+            <div className="border border-border bg-surface rounded-xl p-6 mb-8">
+              <InteractiveLesson
+                lesson={lesson}
+                onComplete={handleComplete}
+                completed={completed}
+                onAskAITutor={handleOpenChat}
+              />
+            </div>
 
             {lesson.quiz && (
-              <ScrollReveal delay={0.2}>
-                <div className="mb-8">
-                  <h2 className="text-lg font-bold text-accent font-mono mb-3">Lesson Quiz</h2>
-                  <QuizCard
-                    title={lesson.quiz ? `${lesson.title} Quiz` : "Quiz"}
-                    questions={lesson.quiz.questions}
-                    passScore={lesson.quiz.passScore}
-                    xpReward={lesson.quiz.xpReward}
-                    onComplete={handleQuizComplete}
-                    onAskAITutor={handleOpenChat}
-                    lessonId={lessonId}
-                    lessonTitle={lesson.title}
-                    weekId={weekId}
-                    nextLessonId={nextLesson?.id}
-                    nextLessonTitle={nextLesson?.title}
-                  />
-                </div>
-              </ScrollReveal>
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-accent font-mono mb-4">Lesson Quiz</h2>
+                <QuizCard
+                  title={lesson.quiz ? `${lesson.title} Quiz` : "Quiz"}
+                  questions={lesson.quiz.questions}
+                  passScore={lesson.quiz.passScore}
+                  xpReward={lesson.quiz.xpReward}
+                  onComplete={handleQuizComplete}
+                  onAskAITutor={handleOpenChat}
+                  lessonId={lessonId}
+                  lessonTitle={lesson.title}
+                  weekId={weekId}
+                  nextLessonId={nextLesson?.id}
+                  nextLessonTitle={nextLesson?.title}
+                />
+              </div>
             )}
 
             <div className="flex items-center gap-3 flex-wrap">
-              {!lesson.quiz && !completed && (
-                <CyberButton variant="primary" onClick={handleComplete} icon={<CheckCircle className="w-4 h-4" />}>
-                  Mark as Complete
-                </CyberButton>
-              )}
-              {!lesson.quiz && completed && (
-                <div className="flex items-center gap-2 px-4 py-2 border border-accent/20 bg-accent-dim rounded-xl">
-                  <CheckCircle className="w-4 h-4 text-accent" />
-                  <span className="text-sm text-accent font-mono">Completed</span>
-                </div>
-              )}
               {lesson.quiz && quizPassed && (
                 <div className="flex items-center gap-2 px-4 py-2 border border-accent/20 bg-accent-dim rounded-xl">
                   <CheckCircle className="w-4 h-4 text-accent" />
@@ -228,11 +179,9 @@ export default function LessonPage() {
                 </CyberButton>
               )}
 
-              {!lesson.quiz && (
-                <CyberButton variant="secondary" onClick={() => handleOpenChat(`I'm learning "${lesson.title}" in the CipherNest curriculum. Can you help me understand this better?`)} icon={<MessageSquare className="w-4 h-4" />}>
-                  Ask AI Tutor
-                </CyberButton>
-              )}
+              <CyberButton variant="secondary" onClick={() => handleOpenChat(`I'm learning "${lesson.title}" in the CipherNest curriculum. Can you help me understand this better?`)} icon={<MessageSquare className="w-4 h-4" />}>
+                Ask AI Tutor
+              </CyberButton>
             </div>
 
             {justCompleted && (

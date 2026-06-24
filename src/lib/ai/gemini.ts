@@ -1,6 +1,12 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
+const FALLBACK_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+];
+
 type AnswerLength = "short" | "medium" | "detailed";
 
 const LENGTH_CONFIG: Record<AnswerLength, { maxOutputTokens: number; temperature: number }> = {
@@ -46,6 +52,46 @@ function buildRequestBody(
   };
 }
 
+async function fetchWithFallback(
+  body: object,
+  endpointSuffix: string,
+  retries = 2,
+): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (const model of FALLBACK_MODELS) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch(
+          `${API_BASE}/${model}:${endpointSuffix}?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+        );
+
+        if (res.ok) return res;
+
+        if (res.status === 429 || res.status === 503) {
+          const wait = Math.min(1000 * Math.pow(2, attempt), 4000);
+          await new Promise((r) => setTimeout(r, wait));
+          lastError = new Error(`Gemini API error: ${res.status} ${await res.text()}`);
+          continue;
+        }
+
+        lastError = new Error(`Gemini API error: ${res.status} ${await res.text()}`);
+        break;
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e));
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+  }
+
+  throw lastError ?? new Error("All Gemini models exhausted");
+}
+
 export async function generateAnswer(
   prompt: string,
   systemInstruction?: string,
@@ -54,21 +100,7 @@ export async function generateAnswer(
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
 
   const body = buildRequestBody(prompt, systemInstruction, length);
-
-  const res = await fetch(
-    `${API_BASE}/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API error: ${res.status} ${err}`);
-  }
-
+  const res = await fetchWithFallback(body, "generateContent");
   const data = await res.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response generated.";
 }
@@ -114,34 +146,23 @@ export async function generateChat(
 
   const config = LENGTH_CONFIG[length];
 
-  const res = await fetch(
-    `${API_BASE}/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents,
-        generationConfig: {
-          temperature: config.temperature,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: config.maxOutputTokens,
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-        ],
-      }),
+  const body = {
+    contents,
+    generationConfig: {
+      temperature: config.temperature,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: config.maxOutputTokens,
     },
-  );
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+    ],
+  };
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API error: ${res.status} ${err}`);
-  }
-
+  const res = await fetchWithFallback(body, "generateContent");
   const data = await res.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response generated.";
 }
@@ -154,20 +175,7 @@ export async function generateAnswerStream(
   if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set");
 
   const body = buildRequestBody(prompt, systemInstruction, length);
-
-  const res = await fetch(
-    `${API_BASE}/gemini-2.5-flash:streamGenerateContent?key=${GEMINI_API_KEY}&alt=sse`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API error: ${res.status} ${err}`);
-  }
+  const res = await fetchWithFallback(body, "streamGenerateContent?alt=sse");
 
   if (!res.body) throw new Error("No response body");
 

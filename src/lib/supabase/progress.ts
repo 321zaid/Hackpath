@@ -155,31 +155,10 @@ export interface LeaderboardEntry {
 }
 
 export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const supabase = createClient();
-
   try {
-    const { data } = await supabase
-      .from("user_progress")
-      .select("total_xp, level, user_id")
-      .order("total_xp", { ascending: false })
-      .limit(50);
-
-    if (!data || data.length === 0) return [];
-
-    const userIds = data.map((d) => d.user_id);
-
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, username")
-      .in("id", userIds);
-
-    const profileMap = new Map(profiles?.map((p) => [p.id, p.username]) ?? []);
-
-    return data.map((entry) => ({
-      username: profileMap.get(entry.user_id) ?? "unknown",
-      total_xp: entry.total_xp,
-      level: entry.level,
-    }));
+    const res = await fetch("/api/leaderboard");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }

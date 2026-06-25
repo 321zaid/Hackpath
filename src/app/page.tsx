@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Terminal, ArrowRight, BookOpen, Beaker, Award, Shield, Users, Sparkles, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -10,6 +11,7 @@ import CyberButton from "@/components/CyberButton";
 import ParallaxSection from "@/components/ParallaxSection";
 import ScrollReveal from "@/components/ScrollReveal";
 import AnimatedGridBackground from "@/components/AnimatedGridBackground";
+import { createClient } from "@/lib/supabase/client";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -65,6 +67,15 @@ const sectionVariants = {
 };
 
 export default function HomePage() {
+  const [session, setSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(!!data.session);
+    });
+  }, []);
+
   return (
     <>
       <AnimatedGridBackground />
@@ -118,7 +129,7 @@ export default function HomePage() {
                   transition={{ delay: 1.4, duration: 0.6, ease }}
                   className="flex items-center justify-center gap-4 flex-wrap"
                 >
-                  <Link href="/dashboard">
+                  <Link href={session ? "/dashboard" : "/login?redirect=/dashboard"}>
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.96 }}
@@ -224,7 +235,11 @@ export default function HomePage() {
                   </p>
                   <p className="text-sm text-[var(--color-gray-400)] font-mono leading-relaxed max-w-lg mx-auto">
                     Only practice on systems you own or have explicit permission to test.
-                    CipherNest uses simulated, sandboxed environments for educational purposes only.
+                    CipherNest uses simulated environments for educational purposes only.
+                    By using this platform, you agree to our{" "}
+                    <Link href="/terms" className="text-accent hover:underline">Terms of Service</Link>,{" "}
+                    <Link href="/privacy" className="text-accent hover:underline">Privacy Policy</Link>, and{" "}
+                    <Link href="/cookies" className="text-accent hover:underline">Cookie Policy</Link>.
                   </p>
                 </div>
               </div>

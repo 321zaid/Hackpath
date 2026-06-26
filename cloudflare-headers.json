@@ -1,0 +1,6 @@
+{
+  "description": "Security headers are applied via Next.js middleware (src/middleware.ts).",
+  "status": "applied",
+  "location": "src/middleware.ts",
+  "how_to_verify": "Open browser DevTools → Network tab → inspect any response → check for these headers: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Content-Security-Policy"
+}

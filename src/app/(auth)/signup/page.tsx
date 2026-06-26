@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +44,9 @@ export default function SignupPage() {
           await supabase.from("profiles").upsert({
             id: data.user.id,
             username,
+            terms_accepted: true,
+            terms_accepted_at: new Date().toISOString(),
+            terms_version: "June 2026",
           });
 
           await supabase.from("user_progress").upsert({
@@ -136,7 +140,23 @@ export default function SignupPage() {
             </motion.p>
           )}
 
-          <CyberButton variant="primary" type="submit" disabled={loading} className="w-full justify-center">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-border bg-surface text-accent focus:ring-accent/50 shrink-0"
+            />
+            <span className="text-xs text-[var(--color-gray-500)] font-mono leading-relaxed">
+              I agree to the{" "}
+              <Link href="/terms" className="text-accent hover:underline">Terms of Service</Link>
+              {" "}and{" "}
+              <Link href="/privacy" className="text-accent hover:underline">Privacy Policy</Link>
+              {" "}and confirm I am at least 13 years old.
+            </span>
+          </label>
+
+          <CyberButton variant="primary" type="submit" disabled={loading || !termsAccepted} className="w-full justify-center">
             {loading ? "Creating account..." : "Create Account"}
           </CyberButton>
         </form>
@@ -146,6 +166,12 @@ export default function SignupPage() {
           <Link href="/login" className="text-accent hover:underline">
             Sign in
           </Link>
+        </p>
+        <p className="text-center text-xs text-[var(--color-gray-600)] font-mono mt-6">
+          By signing up, you agree to our{" "}
+          <Link href="/terms" className="text-accent hover:underline">Terms of Service</Link>
+          {" "}and{" "}
+          <Link href="/privacy" className="text-accent hover:underline">Privacy Policy</Link>
         </p>
       </motion.div>
     </main>

@@ -45,6 +45,16 @@ export default function CookiesPage() {
                       <td className="py-2 pr-4">Refresh token for session renewal</td>
                       <td className="py-2">Persistent</td>
                     </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-mono">_cf_analytics</td>
+                      <td className="py-2 pr-4">Cloudflare Web Analytics — privacy-first, no personal data, no cross-site tracking</td>
+                      <td className="py-2">Session</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 font-mono">ad-cookies</td>
+                      <td className="py-2 pr-4">Advertising partner cookies to display relevant ads and measure performance</td>
+                      <td className="py-2">Up to 12 months</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -52,8 +62,8 @@ export default function CookiesPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold text-foreground mb-2">3. No Tracking Cookies</h2>
-              <p>We do <strong className="text-foreground">not</strong> use tracking cookies, analytics cookies, advertising cookies, or any third-party cookies for marketing purposes.</p>
+              <h2 className="text-lg font-semibold text-foreground mb-2">3. Cookie Types We Use</h2>
+              <p>We use essential cookies for authentication, analytics cookies via Cloudflare Web Analytics (privacy-first, no personal data), and advertising cookies from our ad partners. We do <strong className="text-foreground">not</strong> use cookies to build personal profiles or track you across other websites.</p>
             </section>
 
             <section>
@@ -63,7 +73,7 @@ export default function CookiesPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-2">5. Contact</h2>
-              <p>For questions about this Cookie Policy, contact: <span className="text-accent">zaid123was@gmail.com</span></p>
+              <p>For questions about this Cookie Policy, contact: <span className="text-accent">privacy@ciphernest.dev</span></p>
             </section>
           </div>
 

@@ -57,7 +57,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-2">7. Contact</h2>
-              <p>For questions about these Terms, contact: <span className="text-accent">zaid123was@gmail.com</span></p>
+              <p>For questions about these Terms, contact: <span className="text-accent">privacy@ciphernest.dev</span></p>
             </section>
           </div>
 

@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username text UNIQUE NOT NULL,
   display_name text,
+  terms_accepted boolean DEFAULT false,
+  terms_accepted_at timestamptz,
+  terms_version text,
   created_at timestamptz DEFAULT now()
 );
 

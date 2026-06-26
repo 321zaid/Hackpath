@@ -182,6 +182,7 @@ export async function fetchProfile() {
       id: userId,
       username: profile?.username ?? "unknown",
       display_name: profile?.display_name ?? null,
+      terms_accepted: profile?.terms_accepted ?? false,
       progress: progress ?? null,
     };
   } catch {

@@ -1,0 +1,19 @@
+{
+  "description": "Rate limiting is applied via Next.js middleware (src/middleware.ts).",
+  "status": "applied",
+  "location": "src/middleware.ts",
+  "rules": [
+    {
+      "name": "Auth endpoints",
+      "paths": ["/api/auth", "/login"],
+      "limit": "10 requests per IP per 60 seconds",
+      "response": "429 Too many requests"
+    },
+    {
+      "name": "General API",
+      "paths": ["/api/"],
+      "limit": "60 requests per IP per 60 seconds",
+      "response": "429 Too many requests"
+    }
+  ]
+}

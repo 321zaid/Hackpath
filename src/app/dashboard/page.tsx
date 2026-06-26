@@ -13,10 +13,13 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { curriculum } from "@/data/curriculum";
 import { getLevel } from "@/lib/utils";
 import { fetchProgress, fetchProfile, type ProgressData } from "@/lib/supabase/progress";
+import TermsConsentWall from "@/components/TermsConsentWall";
 
 export default function DashboardPage() {
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [username, setUsername] = useState("Agent");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [needsConsent, setNeedsConsent] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,6 +30,10 @@ export default function DashboardPage() {
         if (cancelled) return;
         setProgress(p);
         if (profile?.username) setUsername(profile.username);
+        if (profile?.id) setUserId(profile.id);
+        if (!profile?.terms_accepted) {
+          setNeedsConsent(true);
+        }
       } catch {
         // session or network error — keep default state
       } finally {
@@ -42,6 +49,9 @@ export default function DashboardPage() {
       <>
         <AnimatedLightRays />
         <Navbar />
+        {needsConsent && userId && (
+          <TermsConsentWall userId={userId} onAccepted={() => setNeedsConsent(false)} />
+        )}
         <main className="min-h-screen pt-24 px-4 pb-12">
           <div className="max-w-5xl mx-auto flex items-center justify-center h-64">
             <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
@@ -67,6 +77,9 @@ export default function DashboardPage() {
     <>
       <AnimatedLightRays />
       <Navbar />
+      {needsConsent && userId && (
+        <TermsConsentWall userId={userId} onAccepted={() => setNeedsConsent(false)} />
+      )}
       <main className="min-h-screen pt-24 px-4 pb-12">
         <div className="max-w-5xl mx-auto">
           <motion.div
